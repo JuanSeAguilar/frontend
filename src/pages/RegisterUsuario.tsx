@@ -20,7 +20,7 @@ export default function RegisterUsuario() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/registro/usuario", form);
+      await api.post("/api/Registro/usuario", form);
       alert("Usuario registrado con éxito");
     } catch (err) {
       alert("Error al registrar usuario");
