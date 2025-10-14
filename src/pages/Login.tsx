@@ -19,8 +19,19 @@ const Login: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      await login(form.username, form.password, form.remember);
-      nav("/Dashboard");
+      const res = await login(form.username, form.password, form.remember); // debe devolver { token, username, roles }
+
+      const roles = res.roles.map((r) => r.toLowerCase());
+
+      if (roles.includes("administrador")) {
+        nav("/dashboard"); // 🔽 en minúsculas (coincide con tus <Route/>)
+      } else if (roles.includes("guarda")) {
+        nav("/guarda/dashboard");
+      } else if (roles.includes("residente")) {
+        nav("/residente/dashboard");
+      } else {
+        nav("/unauthorized"); // fallback si no tiene ninguno
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.message || "Credenciales inválidas";
       setError(msg);
@@ -30,47 +41,93 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: 360, margin: "64px auto", fontFamily: "system-ui, sans-serif" }}>
-      <h2>Ingresar</h2>
-      <form onSubmit={onSubmit}>
-        <label>
-          Usuario (correo)
-          <input
-            name="username"
-            value={form.username}
-            onChange={onChange}
-            type="email"
-            placeholder="admin@demo.com"
-            required
-            style={{ width: "100%", padding: 8, marginTop: 4, marginBottom: 12 }}
-          />
-        </label>
-        <label>
-          Contraseña
-          <input
-            name="password"
-            value={form.password}
-            onChange={onChange}
-            type="password"
-            required
-            style={{ width: "100%", padding: 8, marginTop: 4, marginBottom: 12 }}
-          />
-        </label>
-        <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
-          <input name="remember" type="checkbox" checked={form.remember} onChange={onChange} />
-          Recordarme (usa localStorage)
-        </label>
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-header">
+          <h1>🔐 ViviGest</h1>
+          <p>Inicia sesión para acceder al panel de control</p>
+        </div>
 
-        {error && <div style={{ color: "crimson", marginBottom: 12 }}>{error}</div>}
+        <form onSubmit={onSubmit} className="login-form">
+          <div className="form-group">
+            <label>Correo electrónico</label>
+            <input
+              name="username"
+              value={form.username}
+              onChange={onChange}
+              type="email"
+              placeholder="admin@demo.com"
+              required
+            />
+          </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ width: "100%", padding: 10, cursor: "pointer" }}
-        >
-          {loading ? "Ingresando..." : "Entrar"}
-        </button>
-      </form>
+          <div className="form-group">
+            <label>Contraseña</label>
+            <input
+              name="password"
+              value={form.password}
+              onChange={onChange}
+              type="password"
+              placeholder="********"
+              required
+            />
+          </div>
+
+          <label className="remember">
+            <input
+              name="remember"
+              type="checkbox"
+              checked={form.remember}
+              onChange={onChange}
+            />
+            Recordarme
+          </label>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? "Ingresando..." : "Entrar"}
+          </button>
+        </form>
+      </div>
+
+      <style>{`
+        .login-container {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-card {
+          background: white;
+          border-radius: 20px;
+          padding: 40px 32px;
+          width: 100%;
+          max-width: 380px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+          animation: fadeIn 0.6s ease-in-out;
+        }
+        .login-header { text-align: center; margin-bottom: 28px; }
+        .login-header h1 { font-size: 28px; margin: 0; color: #1e293b; }
+        .login-header p { color: #64748b; font-size: 14px; margin-top: 4px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 14px; color: #334155; margin-bottom: 6px; }
+        input[type="email"], input[type="password"] {
+          width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus { border-color: #6366f1; outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+        .remember { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; margin-bottom: 16px; }
+        .btn-primary {
+          width: 100%; padding: 12px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white;
+          border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; font-size: 15px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+        .error-message { color: #ef4444; font-size: 13px; margin-bottom: 10px; text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   );
 };
