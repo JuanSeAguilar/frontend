@@ -1,21 +1,15 @@
+// src/services/visitaService.ts
 import api from "../api/axios";
 
 export const visitaService = {
-  // Registrar una nueva visita
-  registrarVisita: async (data: any) => {
-    const res = await api.post("/api/visitas/registrar", data);
-    return res.data;
-  },
+  registrarVisitaByUnidad: async (data: {
+    idUnidad: string;
+    nombreVisitante: string;
+    tipoDocumento: "CC" | "CE" | "NIT" | "PAS";
+    numeroDocumento: string;
+    motivo: string;
+    placaVehiculo?: string | null;
+  }) => (await api.post("/api/guarda/visitas/by-unidad", data)).data,
 
-  // Obtener todas las visitas registradas (para el guarda)
-  obtenerVisitas: async () => {
-    const res = await api.get("/api/visitas");
-    return res.data;
-  },
-
-  // (opcional) Marcar salida de una visita
-  registrarSalida: async (id: number) => {
-    const res = await api.put(`/api/visitas/${id}/salida`);
-    return res.data;
-  }
+  obtenerVisitas: async () => (await api.get("/api/guarda/visitas")).data,
 };

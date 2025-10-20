@@ -2,15 +2,14 @@ import React, { useEffect, useState } from "react";
 import { visitaService } from "../../services/visitaService";
 
 type Visita = {
-  idVisita: number;
-  nombreVisitante: string;
-  tipoDocumento: string;
-  numeroDocumento: string;
+  idVisita: string;                // es GUID, no number
+  visitante: string;
+  documento: string;               // viene ya junto (si quieres, luego lo separas)
   torre: string;
   unidad: string;
   motivo: string;
-  fechaIngreso: string;
-  placaVehiculo?: string;
+  fecha: string;                   // <- ESTE es el campo correcto
+  placaVehiculo?: string | null;
 };
 
 const ListaVisitas: React.FC = () => {
@@ -28,9 +27,14 @@ const ListaVisitas: React.FC = () => {
         setLoading(false);
       }
     };
-
     cargarVisitas();
   }, []);
+
+  const fmtFecha = (val?: string) => {
+    if (!val) return "—";
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? "—" : d.toLocaleString();
+  };
 
   if (loading) return <p style={{ textAlign: "center" }}>Cargando visitas...</p>;
 
@@ -59,22 +63,19 @@ const ListaVisitas: React.FC = () => {
             <tbody>
               {visitas.map((v) => (
                 <tr key={v.idVisita}>
-                  <td>{v.nombreVisitante}</td>
-                  <td>
-                    {v.tipoDocumento} {v.numeroDocumento}
-                  </td>
+                  <td>{v.visitante}</td>
+                  <td>{v.documento}</td>
                   <td>{v.torre}</td>
                   <td>{v.unidad}</td>
                   <td>{v.motivo}</td>
-                  <td>{new Date(v.fechaIngreso).toLocaleString()}</td>
-                  <td>{v.placaVehiculo || "—"}</td>
+                  <td>{fmtFecha(v.fecha)}</td>
+                  <td>{(v.placaVehiculo || "").trim() || "—"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
-
       <style>{`
         .visitas-container {
           background: #f9fafb;

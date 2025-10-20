@@ -1,40 +1,53 @@
-import React, { useState } from "react";
+// src/pages/guarda/RegistroVisita.tsx
+import React, { useEffect, useState } from "react";
+import { catalogoService } from "../../services/CatalogoService";
 import { visitaService } from "../../services/visitaService";
 
 const RegistroVisita: React.FC = () => {
+  const [torres, setTorres] = useState<{idTorre:string; nombre:string}[]>([]);
+  const [unidades, setUnidades] = useState<{idUnidad:string; codigo:string}[]>([]);
+  const [selTorre, setSelTorre] = useState("");
+  const [selUnidad, setSelUnidad] = useState("");
+
   const [form, setForm] = useState({
     nombreVisitante: "",
     tipoDocumento: "",
     numeroDocumento: "",
-    torre: "",
-    unidad: "",
     motivo: "",
     placaVehiculo: "",
   });
-
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  useEffect(() => { catalogoService.torres().then(setTorres); }, []);
+  useEffect(() => {
+    setSelUnidad("");
+    if (selTorre) catalogoService.unidadesPorTorre(selTorre).then(setUnidades);
+    else setUnidades([]);
+  }, [selTorre]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selUnidad) return alert("Selecciona una unidad.");
     setLoading(true);
     try {
-      await visitaService.registrarVisita(form);
-      alert("✅ Visita registrada correctamente");
-      setForm({
-        nombreVisitante: "",
-        tipoDocumento: "",
-        numeroDocumento: "",
-        torre: "",
-        unidad: "",
-        motivo: "",
-        placaVehiculo: "",
+      await visitaService.registrarVisitaByUnidad({
+        idUnidad: selUnidad,
+        nombreVisitante: form.nombreVisitante,
+        tipoDocumento: form.tipoDocumento as any, // "CC" | "CE" | "NIT" | "PAS"
+        numeroDocumento: form.numeroDocumento,
+        motivo: form.motivo,
+        placaVehiculo: form.placaVehiculo || null,
       });
-    } catch {
-      alert("❌ Error al registrar la visita");
+      alert("✅ Visita registrada");
+      setForm({ nombreVisitante:"", tipoDocumento:"", numeroDocumento:"", motivo:"", placaVehiculo:"" });
+      setSelUnidad("");
+      // si quieres mantener torre, no limpies selTorre
+    } catch (err:any) {
+      console.error(err?.response?.data || err);
+      alert("❌ " + (err?.response?.data?.message || "Error al registrar"));
     } finally {
       setLoading(false);
     }
@@ -43,74 +56,44 @@ const RegistroVisita: React.FC = () => {
   return (
     <div className="content">
       <div className="card">
-        <h2>Registro de Visita</h2>
+        <h2>Registro de Visita (Guarda)</h2>
 
         <form className="form" onSubmit={handleSubmit}>
-          <input
-            name="nombreVisitante"
-            placeholder="Nombre del visitante"
-            value={form.nombreVisitante}
-            onChange={handleChange}
-            required
-          />
+          <input name="nombreVisitante" placeholder="Nombre del visitante"
+            value={form.nombreVisitante} onChange={handleChange} required />
 
-          <select
-            name="tipoDocumento"
-            value={form.tipoDocumento}
-            onChange={handleChange}
-            required
-          >
+          <select name="tipoDocumento" value={form.tipoDocumento} onChange={handleChange} required>
             <option value="">Tipo de documento</option>
             <option value="CC">Cédula</option>
             <option value="CE">Cédula de extranjería</option>
-            <option value="PA">Pasaporte</option>
+            <option value="NIT">NIT</option>
+            <option value="PAS">Pasaporte</option>
           </select>
 
-          <input
-            name="numeroDocumento"
-            placeholder="Número de documento"
-            value={form.numeroDocumento}
-            onChange={handleChange}
-            required
-          />
+          <input name="numeroDocumento" placeholder="Número de documento"
+            value={form.numeroDocumento} onChange={handleChange} required />
 
-          <input
-            name="torre"
-            placeholder="Torre"
-            value={form.torre}
-            onChange={handleChange}
-            required
-          />
+          <select value={selTorre} onChange={(e) => setSelTorre(e.target.value)} required>
+            <option value="">Selecciona torre</option>
+            {torres.map(t => <option key={t.idTorre} value={t.idTorre}>{t.nombre}</option>)}
+          </select>
 
-          <input
-            name="unidad"
-            placeholder="Unidad / Apartamento"
-            value={form.unidad}
-            onChange={handleChange}
-            required
-          />
+          <select value={selUnidad} onChange={(e) => setSelUnidad(e.target.value)} required disabled={!selTorre}>
+            <option value="">Selecciona unidad</option>
+            {unidades.map(u => <option key={u.idUnidad} value={u.idUnidad}>{u.codigo}</option>)}
+          </select>
 
-          <input
-            name="motivo"
-            placeholder="Motivo de la visita"
-            value={form.motivo}
-            onChange={handleChange}
-            required
-          />
+          <input name="motivo" placeholder="Motivo de la visita"
+            value={form.motivo} onChange={handleChange} required />
 
-          <input
-            name="placaVehiculo"
-            placeholder="Placa del vehículo (opcional)"
-            value={form.placaVehiculo}
-            onChange={handleChange}
-          />
+          <input name="placaVehiculo" placeholder="Placa del vehículo (opcional)"
+            value={form.placaVehiculo} onChange={handleChange} />
 
-          <button type="submit" className="btn-primary" disabled={loading}>
+          <button type="submit" className="btn-primary" disabled={loading || !selUnidad}>
             {loading ? "Registrando..." : "Registrar Visita"}
           </button>
         </form>
       </div>
-
       <style>{`
         .content {
           display: flex;
