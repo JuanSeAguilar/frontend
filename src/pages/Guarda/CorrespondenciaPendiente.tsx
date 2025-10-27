@@ -50,7 +50,7 @@ const CorrespondenciaPendiente: React.FC = () => {
             <p>Gestión de correspondencia por entregar</p>
           </div>
           <button 
-            onClick={() => navigate('/guarda/correspondencia/registrar')}
+            onClick={() => navigate('/Guarda/correspondencia/registrar')}
             className="nuevo-btn"
           >
             + Nueva Correspondencia
