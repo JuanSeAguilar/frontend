@@ -13,7 +13,6 @@ const PrivatePage: React.FC = () => {
 
   return (
     <div style={{ maxWidth: 720, margin: "40px auto", fontFamily: "system-ui, sans-serif" }}>
-      <h2>Dashboard</h2>
       <p>Usuario: <b>{auth.username}</b></p>
       <p>Roles: <b>{auth.roles.join(", ") || "-"}</b></p>
 

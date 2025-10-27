@@ -1,3 +1,5 @@
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import api, { storage } from "../api/axios";
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react'; // ← Agrega esto
 
@@ -14,6 +16,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  hasRole: (r: string) => boolean;
+  login: (username: string, password: string, remember?: boolean) => Promise<LoginResponse>;
   login: (email: string, password: string, remember: boolean) => Promise<void>;
   logout: () => void;
   loading: boolean;
@@ -32,6 +36,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Carga inicial desde storage y sincroniza header Authorization
+  useEffect(() => {
+    const token = storage.get();
+    const username = sessionStorage.getItem("auth.username") || localStorage.getItem("auth.username");
+
+    let roles: string[] = [];
+    const raw = sessionStorage.getItem("auth.roles") || localStorage.getItem("auth.roles");
+    if (raw) {
+      try { roles = JSON.parse(raw); } catch { roles = []; }
+    }
+
+    if (token) {
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
+      setAuth({ token, username, roles });
+    }
+  }, []);
+
+  const login = async (username: string, password: string, remember = false): Promise<LoginResponse> => {
+    const { data } = await api.post<LoginResponse>("/api/Auth/login", { username, password });
+
+    // guarda token y metadatos
+    storage.set(data.token, !!remember);
+    const save = remember ? localStorage : sessionStorage;
+    save.setItem("auth.username", data.username);
+    save.setItem("auth.roles", JSON.stringify(data.roles));
+
+    // sincroniza header Authorization
+    api.defaults.headers.common.Authorization = `Bearer ${data.token}`;
+
+    setAuth({ token: data.token, username: data.username, roles: data.roles });
+    return data;
   // Verificar si hay usuario en localStorage al cargar
   useEffect(() => {
     const checkAuth = () => {
@@ -100,6 +135,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función de logout
   const logout = () => {
+    storage.clear();
+    sessionStorage.removeItem("auth.username");
+    sessionStorage.removeItem("auth.roles");
+    localStorage.removeItem("auth.username");
+    localStorage.removeItem("auth.roles");
+
+    // limpia header Authorization
+    delete api.defaults.headers.common.Authorization;
+
+    setAuth({ token: null, username: null, roles: [] });
+  };
+
+  const value = useMemo<AuthContextType>(() => ({
+    auth,
+    isAuthenticated: !!auth.token,
+    hasRole: (r) => auth.roles.some(x => x.toLowerCase() === r.toLowerCase()),
     setUser(null);
     localStorage.removeItem('vivigest_user');
   };
