@@ -74,7 +74,14 @@ const ListaVisitas: React.FC = () => {
               ))}
             </tbody>
           </table>
+          
         )}
+        <button
+                onClick={visitaService.generarReporte}
+                className="btn-reporte"
+              >
+                📄 Ver reporte PDF
+              </button>
       </div>
       <style>{`
         .visitas-container {
@@ -98,6 +105,21 @@ const ListaVisitas: React.FC = () => {
           color: #1e3a8a;
           text-align: center;
           margin-bottom: 20px;
+        }
+
+        .btn-reporte {
+          background: #2563eb;
+          color: white;
+          padding: 10px 16px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: background 0.3s ease;
+        }
+
+        .btn-reporte:hover {
+          background: #1e40af;
         }
 
         table {
