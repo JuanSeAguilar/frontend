@@ -15,6 +15,9 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import Reportes from "./pages/admin/Reportes";
 import Unidades from "./pages/admin/Unidades";
 import Residente from "./pages/admin/Residente";
+import CorrespondenciaList from "./pages/admin/correspondencia/CorrespondenciaList";
+import CorrespondenciaForm from "./pages/admin/correspondencia/CorrespondenciaForm";
+
 
 // Guarda
 import DashboardGuarda from "./pages/Guarda/DashboardGuarda";
@@ -47,6 +50,12 @@ const App: React.FC = () => {
             }
           >
             <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="correspondencia" >
+              <Route index element={<CorrespondenciaList />} />
+              <Route path="nuevo" element={<CorrespondenciaForm />} />
+              <Route path="editar/:id" element={<CorrespondenciaForm />} />
+            </Route>
             <Route path="reportes" element={<Reportes />} />
             <Route path="unidades" element={<Unidades />} />
             <Route path="residente" element={<Residente />} />
@@ -62,6 +71,7 @@ const App: React.FC = () => {
             }
           >
             <Route index element={<DashboardGuarda />} />
+            <Route path="DashboardGuarda" element={<DashboardGuarda />} />
             <Route path="registro-visita" element={<RegistroVisita />} />
             <Route path="visitas" element={<ListaVisitas />} />
             <Route path="control-visitantes" element={<ControlVisitantes />} />

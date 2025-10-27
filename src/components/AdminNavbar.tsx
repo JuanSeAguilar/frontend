@@ -1,16 +1,18 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const AdminNavbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname.includes(path) ? 'nav-item active' : 'nav-item';
   };
 
   const handleLogout = () => {
-    // Aquí va tu lógica de logout
+    logout();
     navigate('/login');
   };
 
@@ -40,7 +42,7 @@ const AdminNavbar: React.FC = () => {
             Correspondencia
           </Link>
           
-          <Link to="/admin/residentes" className={isActive('residentes')}>
+          <Link to="/admin/residente" className={isActive('residentes')}>
             <span className="nav-icon">👥</span>
             Residentes
           </Link>

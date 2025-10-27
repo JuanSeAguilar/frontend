@@ -1,15 +1,18 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // asegúrate que esta ruta coincide con la de tu contexto
 
 const GuardaNavbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth(); // asumimos que tu AuthContext tiene un método logout()
 
   const isActive = (path: string) => {
-    return location.pathname.includes(path) ? 'nav-item active' : 'nav-item';
+    return location.pathname.includes(path) ? 'active' : '';
   };
 
   const handleLogout = () => {
+    logout(); // limpia el token o datos del guarda
     navigate('/login');
   };
 
@@ -27,30 +30,30 @@ const GuardaNavbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Items de navegación - Más simples para guarda */}
+        {/* Items de navegación */}
         <div className="nav-items">
-          <Link to="/Guarda/dashboard" className={isActive('dashboard')}>
+          <Link to="/Guarda/DashboardGuarda" className={`nav-item ${isActive('DashboardGuarda')}`}>
             <span className="nav-icon">📊</span>
             Inicio
           </Link>
           
-          <Link to="/Guarda/correspondencia" className={isActive('correspondencia')}>
+          <Link to="/Guarda/correspondencia-pendiente" className={`nav-item ${isActive('correspondencia-pendiente')}`}>
             <span className="nav-icon">📬</span>
             Correspondencia
           </Link>
           
-          <Link to="/Guarda/correspondencia/registrar" className={isActive('registrar')}>
+          <Link to="/Guarda/registro-correspondencia" className={`nav-item ${isActive('registro-correspondencia')}`}>
             <span className="nav-icon">➕</span>
             Nueva
           </Link>
           
-          <Link to="/Guarda/visitantes" className={isActive('visitantes')}>
+          <Link to="/Guarda/visitas" className={`nav-item ${isActive('visitas')}`}>
             <span className="nav-icon">👤</span>
             Visitantes
           </Link>
         </div>
 
-        {/* User menu simplificado */}
+        {/* User menu */}
         <div className="user-menu">
           <button onClick={handleLogout} className="logout-btn">
             <span className="logout-icon">🚪</span>
@@ -118,7 +121,7 @@ const GuardaNavbar: React.FC = () => {
           align-items: center;
         }
 
-        .nav-items a {
+        .nav-item {
           display: flex;
           align-items: center;
           gap: 8px;
@@ -131,12 +134,12 @@ const GuardaNavbar: React.FC = () => {
           font-size: 14px;
         }
 
-        .nav-items a:hover {
+        .nav-item:hover {
           background: rgba(255, 255, 255, 0.15);
           transform: translateY(-1px);
         }
 
-        .nav-items a.active {
+        .nav-item.active {
           background: rgba(255, 255, 255, 0.25);
           backdrop-filter: blur(10px);
         }

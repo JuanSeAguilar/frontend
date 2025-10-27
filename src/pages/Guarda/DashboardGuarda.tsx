@@ -10,20 +10,21 @@ const DashboardGuarda: React.FC = () => {
       value: '8', 
       icon: '📬', 
       color: 'from-blue-500 to-cyan-500',
-      onClick: () => navigate('/Guarda/correspondencia')
+      onClick: () => navigate('/Guarda/correspondencia-pendiente')
     },
     { 
       title: 'Visitantes Hoy', 
       value: '12', 
       icon: '👤', 
       color: 'from-green-500 to-emerald-500',
-      onClick: () => navigate('/Guarda/visitantes')
+      onClick: () => navigate('/Guarda/visitas')
     },
     { 
       title: 'Entregas Hoy', 
       value: '5', 
       icon: '✅', 
       color: 'from-purple-500 to-pink-500',
+      onClick: () => navigate('/Guarda/registro-correspondencia')
     }
   ];
 
@@ -32,19 +33,19 @@ const DashboardGuarda: React.FC = () => {
       icon: '📬',
       title: 'Registrar Correspondencia',
       description: 'Registrar nueva correspondencia',
-      onClick: () => navigate('/Guarda/correspondencia/registrar')
+      onClick: () => navigate('/Guarda/registro-correspondencia')
     },
     {
       icon: '👤',
       title: 'Registrar Visitante',
       description: 'Registrar ingreso de visitante',
-      onClick: () => navigate('/Guarda/visitantes')
+      onClick: () => navigate('/Guarda/registro-visita')
     },
     {
       icon: '📋',
       title: 'Ver Pendientes',
       description: 'Revisar correspondencia pendiente',
-      onClick: () => navigate('/Guarda/correspondencia')
+      onClick: () => navigate('/Guarda/correspondencia-pendiente')
     }
   ];
 
@@ -185,8 +186,8 @@ const DashboardGuarda: React.FC = () => {
         }
 
         .stat-card {
-          background: linear-gradient(135deg, var(--tw-gradient-stops));
-          color: white;
+          background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
+          color: black;
           padding: 20px;
           border-radius: 12px;
           cursor: pointer;
@@ -319,14 +320,6 @@ const DashboardGuarda: React.FC = () => {
           color: #94a3b8;
           white-space: nowrap;
         }
-
-        /* Gradient classes */
-        .from-blue-500 { --tw-gradient-from: #3b82f6; }
-        .to-cyan-500 { --tw-gradient-to: #06b6d4; }
-        .from-green-500 { --tw-gradient-from: #10b981; }
-        .to-emerald-500 { --tw-gradient-to: #059669; }
-        .from-purple-500 { --tw-gradient-from: #8b5cf6; }
-        .to-pink-500 { --tw-gradient-to: #ec4899; }
       `}</style>
     </div>
   );

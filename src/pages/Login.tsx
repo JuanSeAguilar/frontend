@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Login: React.FC = () => {
   const nav = useNavigate();
-  const { login } = useAuth();
+  const { login, user, isAuthenticated } = useAuth(); // <- usamos user/isAuthenticated
   const [form, setForm] = useState({ username: "", password: "", remember: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,6 +13,21 @@ const Login: React.FC = () => {
     const { name, value, type, checked } = e.target;
     setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
   };
+
+  // Decide ruta según rol
+  const routeByRole = (roles: string[]) => {
+    if (roles.includes("Administrador")) return "/admin";
+    if (roles.includes("Guarda"))        return "/guarda";
+    if (roles.includes("Residente"))     return "/residente";
+    return "/"; // fallback
+  };
+
+  // Después de autenticarse, redirige por rol
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+    const roles = user.roles?.length ? user.roles : (user.role ? [user.role] : []);
+    nav(routeByRole(roles as string[]), { replace: true });
+  }, [isAuthenticated, user, nav]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,8 +39,7 @@ const Login: React.FC = () => {
         password: form.password,
         remember: form.remember,
       });
-      // Redirige a tu landing deseada (ajusta si quieres segun rol)
-      nav("/admin", { replace: true });
+      // 👇 ya no navegamos aquí; el useEffect hará la redirección por rol
     } catch (err: any) {
       setError(err?.message || "No fue posible iniciar sesión");
     } finally {

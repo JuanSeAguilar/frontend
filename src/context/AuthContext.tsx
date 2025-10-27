@@ -8,7 +8,7 @@ export interface User {
   email: string;
   nombre: string;
   roles: Role[];
-  role?: Role; // compatibilidad
+  role?: Role;
 }
 
 interface AuthContextType {
@@ -41,23 +41,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login: AuthContextType["login"] = async ({ username, password, remember = false }) => {
     try {
       const { data } = await api.post("/api/Auth/login", { username, password });
-      const t: string = data?.token || data?.accessToken;
-      if (!t) throw new Error("Token no recibido");
 
-      storage.set(t, !!remember);
-      api.defaults.headers.common.Authorization = `Bearer ${t}`;
+      const token = data?.token;
+      const roles = (data?.roles ?? []) as Role[];
+
+      if (!token) throw new Error("Token no recibido");
+      if (!Array.isArray(roles) || roles.length === 0)
+        throw new Error("El usuario no tiene roles asignados.");
+
+      // Guardar token y header
+      storage.set(token, !!remember);
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
 
       const u: User = {
-        id: data?.usuario?.id ?? "0",
-        email: data?.usuario?.email ?? username,
-        nombre: data?.usuario?.nombre ?? username,
-        roles: (data?.usuario?.roles as Role[]) ?? ["Administrador"],
-        role: ((data?.usuario?.roles?.[0]) as Role) ?? "Administrador",
+        id: "0", // no lo envías aún, lo puedes añadir después
+        email: data.username ?? username,
+        nombre: data.username ?? username,
+        roles,
+        role: roles[0],
       };
 
       localStorage.setItem("auth.user", JSON.stringify(u));
       setUser(u);
-      setToken(t);
+      setToken(token);
     } catch (e: any) {
       const msg =
         e?.response?.data?.message ||
@@ -70,23 +76,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     storage.clear();
+    localStorage.removeItem("auth.user");
     setUser(null);
     setToken(null);
-    localStorage.removeItem("auth.user");
+    delete (api.defaults.headers.common as any).Authorization;
   };
 
-  const value = useMemo<AuthContextType>(() => ({
-    user,
-    token,
-    isAuthenticated: !!token,
-    hasRole: (r) => {
-      const rr = (typeof r === "string" ? r : r).toString();
-      const roles = user?.roles ?? (user?.role ? [user.role] : []);
-      return roles.includes(rr as Role);
-    },
-    login,
-    logout,
-  }), [user, token]);
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      token,
+      isAuthenticated: !!token,
+      hasRole: (r) => {
+        const role = (typeof r === "string" ? r : r).toString();
+        const roles = user?.roles ?? (user?.role ? [user.role] : []);
+        return roles.includes(role as Role);
+      },
+      login,
+      logout,
+    }),
+    [user, token]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
