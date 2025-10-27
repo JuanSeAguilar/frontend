@@ -1,32 +1,16 @@
-// PrivateRoute.tsx - Versión mejorada
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-interface PrivateRouteProps {
+interface Props {
   children: React.ReactNode;
-  requiredRole?: 'admin' | 'guarda'; // ← Opcional
+  requiredRole?: "Administrador" | "Guarda" | "Residente";
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ 
-  children, 
-  requiredRole 
-}) => {
+const PrivateRoute: React.FC<Props> = ({ children, requiredRole }) => {
   const { isAuthenticated, user } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Si hay rol requerido, validarlo (opcional por ahora)
-  if (requiredRole) {
-    // Lógica temporal de roles
-    const userRole = user?.role || 'admin';
-    if (userRole !== requiredRole) {
-      return <div>🔒 No tienes acceso a esta sección</div>;
-    }
-  }
-
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (requiredRole && !(user?.roles || []).includes(requiredRole)) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 

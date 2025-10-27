@@ -29,22 +29,22 @@ const GuardaNavbar: React.FC = () => {
 
         {/* Items de navegación - Más simples para guarda */}
         <div className="nav-items">
-          <Link to="/guarda/dashboard" className={isActive('dashboard')}>
+          <Link to="/Guarda/dashboard" className={isActive('dashboard')}>
             <span className="nav-icon">📊</span>
             Inicio
           </Link>
           
-          <Link to="/guarda/correspondencia" className={isActive('correspondencia')}>
+          <Link to="/Guarda/correspondencia" className={isActive('correspondencia')}>
             <span className="nav-icon">📬</span>
             Correspondencia
           </Link>
           
-          <Link to="/guarda/correspondencia/registrar" className={isActive('registrar')}>
+          <Link to="/Guarda/correspondencia/registrar" className={isActive('registrar')}>
             <span className="nav-icon">➕</span>
             Nueva
           </Link>
           
-          <Link to="/guarda/visitantes" className={isActive('visitantes')}>
+          <Link to="/Guarda/visitantes" className={isActive('visitantes')}>
             <span className="nav-icon">👤</span>
             Visitantes
           </Link>
