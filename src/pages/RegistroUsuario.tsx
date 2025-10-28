@@ -57,7 +57,6 @@ const RegistroUsuario: React.FC = () => {
           <select name="idRol" value={form.idRol} onChange={handleChange} required>
             <option value="">Seleccione rol</option>
             <option value="1">Administrador</option>
-            <option value="2">Residente</option>
             <option value="3">Guarda</option>
           </select>
 
