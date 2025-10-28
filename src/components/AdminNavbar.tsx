@@ -56,6 +56,14 @@ const AdminNavbar: React.FC = () => {
             <span className="nav-icon">📈</span>
             Reportes
           </Link>
+          <Link to="/admin/registro-usuario" className={isActive('registro-usuario')}>
+            <span className="nav-icon">📝</span>
+            Registro Usuario
+          </Link>
+          <Link to="/admin/registro-residente" className={isActive('registro-residente')}>
+            <span className="nav-icon">📝</span>
+            Registro Residente
+          </Link>
         </div>
 
         {/* User menu */}

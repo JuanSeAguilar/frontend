@@ -17,6 +17,8 @@ import Unidades from "./pages/admin/Unidades";
 import Residente from "./pages/admin/Residente";
 import CorrespondenciaList from "./pages/admin/correspondencia/CorrespondenciaList";
 import CorrespondenciaForm from "./pages/admin/correspondencia/CorrespondenciaForm";
+import RegistroUsuario from "./pages/RegistroUsuario";
+import RegistroResidente from "./pages/RegistroResidente";
 
 
 // Guarda
@@ -59,6 +61,8 @@ const App: React.FC = () => {
             <Route path="reportes" element={<Reportes />} />
             <Route path="unidades" element={<Unidades />} />
             <Route path="residente" element={<Residente />} />
+            <Route path="registro-usuario" element={<RegistroUsuario />} />
+            <Route path="registro-residente" element={<RegistroResidente />} />
           </Route>
 
           {/* ===================== GUARDA ===================== */}
