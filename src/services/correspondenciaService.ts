@@ -1,6 +1,7 @@
 // src/services/correspondenciaService.ts
+import api from '../api/axios.ts';
 
-// Tipos
+// Tipos (se mantienen igual)
 export interface TipoCorrespondencia {
   idTipoCorrespondencia: number;
   nombre: string;
@@ -8,8 +9,7 @@ export interface TipoCorrespondencia {
 
 export interface Unidad {
   idUnidad: string;
-  codigoCompleto: string;
-  torreNombre: string;
+  nombreCompleto: string;
 }
 
 export interface Correspondencia {
@@ -31,87 +31,57 @@ export interface CorrespondenciaFormData {
   observacion: string;
 }
 
-// Servicio mock (sin backend)
+// Servicio REAL con tu API
 export const correspondenciaService = {
-  // Obtener tipos de correspondencia
+  // Obtener tipos de correspondencia (REAL)
   getTipos: async (): Promise<TipoCorrespondencia[]> => {
-    return [
-      { idTipoCorrespondencia: 1, nombre: 'Paquete' },
-      { idTipoCorrespondencia: 2, nombre: 'Documento' },
-      { idTipoCorrespondencia: 3, nombre: 'Encomienda' },
-      { idTipoCorrespondencia: 4, nombre: 'Carta' }
-    ];
+    const response = await api.get('/api/guarda/correspondencia/tiposCorrespondencia');
+    return response.data;
   },
 
-  // Obtener unidades
+  // Obtener unidades (REAL)
   getUnidades: async (): Promise<Unidad[]> => {
-    return [
-      { idUnidad: '123e4567-e89b-12d3-a456-426614174000', codigoCompleto: 'Torre A - 101', torreNombre: 'Torre A' },
-      { idUnidad: '123e4567-e89b-12d3-a456-426614174001', codigoCompleto: 'Torre A - 102', torreNombre: 'Torre A' },
-      { idUnidad: '123e4567-e89b-12d3-a456-426614174002', codigoCompleto: 'Torre B - 201', torreNombre: 'Torre B' },
-      { idUnidad: '123e4567-e89b-12d3-a456-426614174003', codigoCompleto: 'Torre B - 202', torreNombre: 'Torre B' },
-      { idUnidad: '123e4567-e89b-12d3-a456-426614174004', codigoCompleto: 'Torre C - 301', torreNombre: 'Torre C' }
-    ];
+    const response = await api.get('/api/guarda/correspondencia/unidades');
+    return response.data;
   },
 
-  // Crear correspondencia
-  crear: async (data: CorrespondenciaFormData): Promise<void> => {
-    console.log('📦 Creando correspondencia:', data);
-    // Simular delay de red
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    // En una app real, aquí iría la llamada a la API
+  // Crear correspondencia (REAL)
+  crear: async (data: CorrespondenciaFormData): Promise<{id: string, message: string}> => {
+    const response = await api.post('/api/guarda/correspondencia', data);
+    return response.data;
   },
 
-  // Obtener correspondencias
-  getCorrespondencias: async (filtroEstado?: string): Promise<Correspondencia[]> => {
-    const correspondencias: Correspondencia[] = [
-      {
-        idCorrespondencia: '1',
-        torreNombre: 'Torre A',
-        unidadCodigo: '101',
-        tipoCorrespondencia: 'Paquete',
-        remitente: 'Servientrega',
-        observacion: 'Paquete mediano',
-        fechaRecepcion: '2024-01-15T10:00:00Z',
-        usuarioRegistro: 'Admin',
-        estado: 'Pendiente'
-      },
-      {
-        idCorrespondencia: '2',
-        torreNombre: 'Torre B',
-        unidadCodigo: '205',
-        tipoCorrespondencia: 'Documento',
-        remitente: 'DHL',
-        observacion: 'Sobre manila',
-        fechaRecepcion: '2024-01-15T11:30:00Z',
-        usuarioRegistro: 'Admin',
-        estado: 'Notificado'
-      }
-    ];
-
-    if (filtroEstado) {
-      return correspondencias.filter(c => c.estado === filtroEstado);
-    }
-
-    return correspondencias;
+  // Obtener correspondencias (REAL)
+  getCorrespondencias: async (): Promise<Correspondencia[]> => {
+    const response = await api.get('/api/guarda/correspondencia');
+    return response.data;
   },
 
-  // Notificar correspondencia
-  notificar: async (id: string): Promise<void> => {
-    console.log('📢 Notificando correspondencia:', id);
-    await new Promise(resolve => setTimeout(resolve, 500));
+  // Obtener pendientes (REAL)
+  getPendientes: async (): Promise<any[]> => {  // ← usa any[] temporalmente
+  const response = await api.get('/api/guarda/correspondencia/pendientes');
+  console.log('📦 Datos de pendientes:', response.data); // ← para ver qué viene
+  return response.data;
+},
+
+  // Notificar correspondencia (REAL)
+  notificar: async (id: string): Promise<{message: string}> => {
+    const response = await api.put(`/api/guarda/correspondencia/${id}/notificar`);
+    return response.data;
   },
 
-  // Entregar correspondencia
-  entregar: async (id: string, entregadoA: string): Promise<void> => {
-    console.log('✅ Entregando correspondencia:', id, 'a:', entregadoA);
-    await new Promise(resolve => setTimeout(resolve, 500));
+  // Entregar correspondencia (REAL)
+  entregar: async (id: string, entregadoA: string): Promise<{message: string}> => {
+    const response = await api.put(`/api/guarda/correspondencia/${id}/entregar`, {
+      entregadoA: entregadoA
+    });
+    return response.data;
   },
 
-  // Eliminar correspondencia
+  // Eliminar correspondencia (SI EXISTE EL ENDPOINT)
   eliminar: async (id: string): Promise<void> => {
-    console.log('🗑️ Eliminando correspondencia:', id);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Si no tienes endpoint de eliminar, quita esto
+    await api.delete(`/api/guarda/correspondencia/${id}`);
   }
 };
 

@@ -47,6 +47,12 @@ const AdminNavbar: React.FC = () => {
             Residentes
           </Link>
           
+          {/* 🔥 NUEVO - REPORTE DE PAGOS */}
+          <Link to="/admin/pagos" className={isActive('pagos')}>
+            <span className="nav-icon">💰</span>
+            Reporte de Pagos
+          </Link>
+          
           <Link to="/admin/unidades" className={isActive('unidades')}>
             <span className="nav-icon">🏘️</span>
             Unidades
@@ -56,10 +62,12 @@ const AdminNavbar: React.FC = () => {
             <span className="nav-icon">📈</span>
             Reportes
           </Link>
+          
           <Link to="/admin/registro-usuario" className={isActive('registro-usuario')}>
             <span className="nav-icon">📝</span>
             Registro Usuario
           </Link>
+          
           <Link to="/admin/registro-residente" className={isActive('registro-residente')}>
             <span className="nav-icon">📝</span>
             Registro Residente

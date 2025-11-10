@@ -1,44 +1,99 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { correspondenciaService } from '../../services/correspondenciaService';
+
+
+ interface CorrespondenciaPendiente {
+  idCorrespondencia: string;
+  unidad: string;           // ← minúscula
+  torre: string;            // ← minúscula  
+  tipoCorrespondencia: string; // ← minúscula
+  remitente: string;        // ← minúscula
+  fechaRecepcion: string;   // ← minúscula
+  observacion: string;      // ← minúscula
+}
 
 const CorrespondenciaPendiente: React.FC = () => {
   const navigate = useNavigate();
+  const [correspondencias, setCorrespondencias] = useState<CorrespondenciaPendiente[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [entregadasHoy, setEntregadasHoy] = useState(0);
 
-  // Datos mock de correspondencia pendiente
-  const correspondenciasPendientes = [
-    {
-      id: '1',
-      torre: 'Torre A',
-      unidad: '101',
-      remitente: 'Servientrega',
-      tipo: 'Paquete',
-      fecha: '2024-01-15',
-      observaciones: 'Paquete mediano, frágil'
-    },
-    {
-      id: '2',
-      torre: 'Torre B', 
-      unidad: '205',
-      remitente: 'DHL',
-      tipo: 'Documento',
-      fecha: '2024-01-15',
-      observaciones: 'Sobre manila'
-    },
-    {
-      id: '3',
-      torre: 'Torre C',
-      unidad: '302',
-      remitente: 'Familiar',
-      tipo: 'Encomienda',
-      fecha: '2024-01-14',
-      observaciones: 'Caja de alimentos'
+  // Cargar datos reales
+  useEffect(() => {
+    cargarCorrespondenciasPendientes();
+    cargarEntregadasHoy();
+  }, []);
+
+  const cargarCorrespondenciasPendientes = async () => {
+  try {
+    setLoading(true);
+    const data = await correspondenciaService.getPendientes();
+    
+    // AGREGA ESTOS CONSOLE.LOG AQUÍ:
+    console.log('🎯 PROPIEDADES DEL PRIMER ELEMENTO:', Object.keys(data[0]));
+    console.log('📦 DATOS COMPLETOS:', data[0]);
+    console.log('🔢 TOTAL DE ELEMENTOS:', data.length);
+    
+    setCorrespondencias(data);
+  } catch (error) {
+    console.error('Error cargando correspondencias:', error);
+    alert('Error al cargar las correspondencias pendientes');
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const cargarEntregadasHoy = async () => {
+    try {
+      // Esto es un ejemplo - necesitarías un endpoint específico
+      const hoy = new Date().toISOString().split('T')[0];
+      // correspondenciaService.getEntregadasHoy(); // Si tienes el endpoint
+      setEntregadasHoy(3); // Temporal
+    } catch (error) {
+      console.error('Error cargando entregadas:', error);
     }
-  ];
-
-  const handleNotificar = (id: string) => {
-    alert(`📢 Notificando correspondencia ${id} al residente`);
-    // Aquí iría la lógica real de notificación
   };
+
+  const handleNotificar = async (id: string) => {
+    try {
+      await correspondenciaService.notificar(id);
+      alert('✅ Residente notificado correctamente');
+      // Recargar la lista
+      cargarCorrespondenciasPendientes();
+    } catch (error) {
+      console.error('Error notificando:', error);
+      alert('Error al notificar al residente');
+    }
+  };
+
+  const formatFecha = (fechaString: string) => {
+    const fecha = new Date(fechaString);
+    return fecha.toLocaleDateString('es-ES');
+  };
+
+  if (loading) {
+    return (
+      <div className="correspondencia-pendiente">
+        <div className="container">
+          <div className="loading">
+            <div className="spinner">⏳</div>
+            <p>Cargando correspondencias...</p>
+          </div>
+        </div>
+        <style>{`
+          .loading {
+            text-align: center;
+            padding: 60px 20px;
+          }
+          .spinner {
+            font-size: 48px;
+            margin-bottom: 16px;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="correspondencia-pendiente">
@@ -62,14 +117,14 @@ const CorrespondenciaPendiente: React.FC = () => {
           <div className="stat-card">
             <div className="stat-icon">📦</div>
             <div className="stat-content">
-              <h3>{correspondenciasPendientes.length}</h3>
+              <h3>{correspondencias.length}</h3>
               <p>Pendientes</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">✅</div>
             <div className="stat-content">
-              <h3>5</h3>
+              <h3>{entregadasHoy}</h3>
               <p>Entregadas Hoy</p>
             </div>
           </div>
@@ -79,7 +134,7 @@ const CorrespondenciaPendiente: React.FC = () => {
         <div className="correspondencia-list">
           <h2>📋 Correspondencia por Notificar</h2>
           
-          {correspondenciasPendientes.length === 0 ? (
+          {correspondencias.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">🎉</div>
               <h3>No hay correspondencia pendiente</h3>
@@ -87,8 +142,8 @@ const CorrespondenciaPendiente: React.FC = () => {
             </div>
           ) : (
             <div className="correspondencia-grid">
-              {correspondenciasPendientes.map((item) => (
-                <div key={item.id} className="correspondencia-card">
+              {correspondencias.map((item) => (
+                <div key={item.idCorrespondencia} className="correspondencia-card">
                   <div className="card-header">
                     <h3>🏢 {item.torre} - {item.unidad}</h3>
                     <span className="badge pendiente">Pendiente</span>
@@ -97,7 +152,7 @@ const CorrespondenciaPendiente: React.FC = () => {
                   <div className="card-content">
                     <div className="info-row">
                       <span className="label">📦 Tipo:</span>
-                      <span className="value">{item.tipo}</span>
+                      <span className="value">{item.tipoCorrespondencia}</span>
                     </div>
                     <div className="info-row">
                       <span className="label">👤 Remitente:</span>
@@ -105,19 +160,19 @@ const CorrespondenciaPendiente: React.FC = () => {
                     </div>
                     <div className="info-row">
                       <span className="label">📅 Fecha:</span>
-                      <span className="value">{item.fecha}</span>
+                      <span className="value">{formatFecha(item.fechaRecepcion)}</span>
                     </div>
-                    {item.observaciones && (
+                    {item.observacion && (
                       <div className="info-row">
                         <span className="label">📝 Observaciones:</span>
-                        <span className="value">{item.observaciones}</span>
+                        <span className="value">{item.observacion}</span>
                       </div>
                     )}
                   </div>
 
                   <div className="card-actions">
                     <button 
-                      onClick={() => handleNotificar(item.id)}
+                      onClick={() => handleNotificar(item.idCorrespondencia)}
                       className="btn notificar"
                     >
                       📢 Notificar Residente
@@ -131,6 +186,7 @@ const CorrespondenciaPendiente: React.FC = () => {
       </div>
 
       <style>{`
+        /* Tus estilos actuales se mantienen igual */
         .correspondencia-pendiente {
           padding: 20px;
           background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);

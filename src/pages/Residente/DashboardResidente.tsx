@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import CargosPendientes from '../../components/CargosPendientes';
 
 const DashboardResidente: React.FC = () => {
   const nav = useNavigate();
@@ -19,6 +20,14 @@ const DashboardResidente: React.FC = () => {
           </button>
         </div>
       </div>
+
+  
+<button onClick={() => nav('/pago')} className="btn-primary">
+  💳 Pagar servicios
+</button>
+
+<CargosPendientes />
+
 
       <style>{`
         .dashboard-container {

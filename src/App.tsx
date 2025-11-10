@@ -6,6 +6,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Layouts
 import AdminLayout from "./components/layouts/AdminLayout";
 import GuardaLayout from "./components/layouts/GuardaLayout";
+import ResidenteLayout from "./components/layouts/ResidenteLayout"
+
 
 // Páginas públicas
 import Login from "./pages/Login";
@@ -19,6 +21,8 @@ import CorrespondenciaList from "./pages/admin/correspondencia/CorrespondenciaLi
 import CorrespondenciaForm from "./pages/admin/correspondencia/CorrespondenciaForm";
 import RegistroUsuario from "./pages/RegistroUsuario";
 import RegistroResidente from "./pages/RegistroResidente";
+import GenerarCargos from "./components/GenerarCargos.js";
+import DashboardPagosAdmin from './pages/admin/DashboardPagosAdmin';
 
 
 // Guarda
@@ -33,6 +37,9 @@ import CorrespondenciaPendiente from "./pages/Guarda/CorrespondenciaPendiente";
 import DashboardResidente from "./pages/Residente/DashboardResidente";
 import AutorizadosList from "./pages/Residente/AutorizadosList";
 import MisCorrespondencias from "./pages/Residente/MisCorrespondencias";
+import PagoPage from './pages/PagoPages';
+
+
 
 const App: React.FC = () => {
   return (
@@ -63,6 +70,8 @@ const App: React.FC = () => {
             <Route path="residente" element={<Residente />} />
             <Route path="registro-usuario" element={<RegistroUsuario />} />
             <Route path="registro-residente" element={<RegistroResidente />} />
+            <Route path="/admin/generar-cargos" element={<GenerarCargos />} />
+            <Route path="/admin/pagos" element={<DashboardPagosAdmin />} />
           </Route>
 
           {/* ===================== GUARDA ===================== */}
@@ -84,23 +93,32 @@ const App: React.FC = () => {
           </Route>
 
           {/* ===================== RESIDENTE ===================== */}
-          <Route
-            path="/residente"
-            element={
-              <ProtectedRoute role="Residente">
-                {/* Si tienes un layout para residente, colócalo aquí; si no, deja un fragmento */}
-                <React.Fragment />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<DashboardResidente />} />
-            <Route path="autorizados" element={<AutorizadosList />} />
-            <Route path="mis-correspondencias" element={<MisCorrespondencias />} />
-          </Route>
+        
+
+
+         {/* Ruta de pago INDEPENDIENTE */}
+  <Route path="/pago" element={<PagoPage />} />
+<Route
+  path="/residente"
+  element={
+    <ProtectedRoute role="Residente">
+      <ResidenteLayout />
+    </ProtectedRoute>
+  }
+> <Route index element={<DashboardResidente />} />
+  <Route path="autorizados" element={<AutorizadosList />} />
+  <Route path="mis-correspondencias" element={<MisCorrespondencias />} />
+  <Route path="/residente" element={<ResidenteLayout />}>
+ 
+</Route>
+</Route>
+  
+
 
           {/* Default */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
+          
         </Routes>
       </BrowserRouter>
     </AuthProvider>
