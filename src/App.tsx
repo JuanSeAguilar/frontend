@@ -6,8 +6,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Layouts
 import AdminLayout from "./components/layouts/AdminLayout";
 import GuardaLayout from "./components/layouts/GuardaLayout";
-import ResidenteLayout from "./components/layouts/ResidenteLayout"
-
 
 // Páginas públicas
 import Login from "./pages/Login";
@@ -93,27 +91,19 @@ const App: React.FC = () => {
           </Route>
 
           {/* ===================== RESIDENTE ===================== */}
-        
-
-
-         {/* Ruta de pago INDEPENDIENTE */}
-  <Route path="/pago" element={<PagoPage />} />
-<Route
-  path="/residente"
-  element={
-    <ProtectedRoute role="Residente">
-      <ResidenteLayout />
-    </ProtectedRoute>
-  }
-> <Route index element={<DashboardResidente />} />
-  <Route path="autorizados" element={<AutorizadosList />} />
-  <Route path="mis-correspondencias" element={<MisCorrespondencias />} />
-  <Route path="/residente" element={<ResidenteLayout />}>
- 
-</Route>
-</Route>
-  
-
+          <Route
+            path="/residente"
+            element={
+              <ProtectedRoute role="Residente">
+                {/* Si tienes un layout para residente, colócalo aquí; si no, deja un fragmento */}
+                <React.Fragment />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DashboardResidente />} />
+            <Route path="autorizados" element={<AutorizadosList />} />
+            <Route path="mis-correspondencias" element={<MisCorrespondencias />} />
+          </Route>
 
           {/* Default */}
           <Route path="/" element={<Navigate to="/login" replace />} />
