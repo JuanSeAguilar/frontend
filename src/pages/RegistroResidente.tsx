@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { residenteService } from "../services/residenteService";
+import api from "../api/axios";
 
 const RegistroResidente: React.FC = () => {
   const [form, setForm] = useState({
@@ -9,9 +10,27 @@ const RegistroResidente: React.FC = () => {
     telefono: "",
     numeroDocumento: "",
     idTipoDocumento: "",
-    torre: "",
-    unidad: "",
+    idUnidad: "",
   });
+
+  const [torres, setTorres] = useState<{ idTorre: string; nombre: string }[]>([]);
+  const [unidades, setUnidades] = useState<{ idUnidad: string; codigo: string }[]>([]);
+  const [torreSeleccionada, setTorreSeleccionada] = useState("");
+
+  // 🔹 Cargar torres al inicio
+  useEffect(() => {
+    api.get("/api/catalogo/torres")
+      .then(res => setTorres(res.data))
+      .catch(() => alert("Error al cargar torres"));
+  }, []);
+
+  // 🔹 Cargar unidades cuando cambia la torre seleccionada
+  useEffect(() => {
+    if (!torreSeleccionada) return;
+    api.get(`/api/catalogo/unidades?torreId=${torreSeleccionada}`)
+      .then(res => setUnidades(res.data))
+      .catch(() => alert("Error al cargar unidades"));
+  }, [torreSeleccionada]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -22,7 +41,11 @@ const RegistroResidente: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await residenteService.create(form);
+      await residenteService.create({
+        ...form,
+        idUnidad: form.idUnidad, // asegúrate de enviar el GUID correcto
+        idTipoDocumento: form.idTipoDocumento,
+      });
       alert("✅ Residente registrado correctamente");
       setForm({
         nombres: "",
@@ -31,9 +54,10 @@ const RegistroResidente: React.FC = () => {
         telefono: "",
         numeroDocumento: "",
         idTipoDocumento: "",
-        torre: "",
-        unidad: "",
+        idUnidad: "",
       });
+      setTorreSeleccionada("");
+      setUnidades([]);
     } catch {
       alert("❌ Error al registrar residente");
     }
@@ -80,6 +104,7 @@ const RegistroResidente: React.FC = () => {
             onChange={handleChange}
             required
           />
+
           <select
             name="idTipoDocumento"
             value={form.idTipoDocumento}
@@ -90,20 +115,34 @@ const RegistroResidente: React.FC = () => {
             <option value="1">Cédula</option>
             <option value="2">Pasaporte</option>
           </select>
-          <input
-            name="torre"
-            placeholder="Torre o edificio"
-            value={form.torre}
+
+          <select
+            value={torreSeleccionada}
+            onChange={(e) => setTorreSeleccionada(e.target.value)}
+            required
+          >
+            <option value="">Seleccione Torre</option>
+            {torres.map((t) => (
+              <option key={t.idTorre} value={t.idTorre}>
+                {t.nombre}
+              </option>
+            ))}
+          </select>
+
+          <select
+            name="idUnidad"
+            value={form.idUnidad}
             onChange={handleChange}
             required
-          />
-          <input
-            name="unidad"
-            placeholder="Unidad o apartamento"
-            value={form.unidad}
-            onChange={handleChange}
-            required
-          />
+            disabled={!unidades.length}
+          >
+            <option value="">Seleccione Unidad</option>
+            {unidades.map((u) => (
+              <option key={u.idUnidad} value={u.idUnidad}>
+                {u.codigo}
+              </option>
+            ))}
+          </select>
 
           <button type="submit">Registrar residente</button>
         </form>

@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Layouts
 import AdminLayout from "./components/layouts/AdminLayout";
 import GuardaLayout from "./components/layouts/GuardaLayout";
+import ResidenteLayout from "./components/layouts/ResidenteLayout";
 
 // Páginas públicas
 import Login from "./pages/Login";
@@ -84,16 +85,17 @@ const App: React.FC = () => {
           </Route>
 
           {/* ===================== RESIDENTE ===================== */}
+          
           <Route
             path="/residente"
-            element={
+            element={ 
               <ProtectedRoute role="Residente">
-                {/* Si tienes un layout para residente, colócalo aquí; si no, deja un fragmento */}
-                <React.Fragment />
+                <ResidenteLayout />
               </ProtectedRoute>
             }
           >
             <Route index element={<DashboardResidente />} />
+            <Route path="dashboard" element={<DashboardResidente />} />
             <Route path="autorizados" element={<AutorizadosList />} />
             <Route path="mis-correspondencias" element={<MisCorrespondencias />} />
           </Route>
