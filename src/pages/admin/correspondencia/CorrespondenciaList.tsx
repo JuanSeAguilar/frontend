@@ -1,42 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// Datos mock
-const mockCorrespondencias = [
-  {
-    idCorrespondencia: '1',
-    torreNombre: 'Torre A',
-    unidadCodigo: '101',
-    tipoCorrespondencia: 'Paquete',
-    remitente: 'Servientrega',
-    observacion: 'Paquete mediano, frágil',
-    fechaRecepcion: '2024-01-15T10:00:00Z',
-    usuarioRegistro: 'Admin',
-    estado: 'Pendiente'
-  },
-  {
-    idCorrespondencia: '2',
-    torreNombre: 'Torre B',
-    unidadCodigo: '205',
-    tipoCorrespondencia: 'Documento',
-    remitente: 'DHL',
-    observacion: 'Sobre manila',
-    fechaRecepcion: '2024-01-15T11:30:00Z',
-    usuarioRegistro: 'Admin',
-    estado: 'Notificado'
-  }
-];
+import { correspondenciaService } from '../../../services/correspondenciaService';
+import type { Correspondencia } from '../../../services/correspondenciaService';
 
 const CorrespondenciaList: React.FC = () => {
   const navigate = useNavigate();
-  const [correspondencias, setCorrespondencias] = useState(mockCorrespondencias);
+  const [correspondencias, setCorrespondencias] = useState<Correspondencia[]>([]);
   const [loading, setLoading] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState('');
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 500);
-  }, [filtroEstado]);
+    cargarCorrespondencias();
+  }, []);
+
+  const cargarCorrespondencias = async () => {
+    try {
+      setLoading(true);
+      console.log('🔍 Iniciando carga de correspondencias...');
+      
+      // 1. Verificar token
+      const token = localStorage.getItem('token');
+      console.log('🔑 Token existe:', !!token);
+      if (token) {
+        console.log('🔑 Token:', token.substring(0, 20) + '...');
+      }
+
+      // 2. Llamar al servicio
+      console.log('🌐 Llamando a la API...');
+      const data = await correspondenciaService.obtenerCorrespondencias();
+      
+      console.log('✅ Datos recibidos del backend:', data);
+      console.log('📊 Cantidad de registros:', data.length);
+      
+      if (data.length > 0) {
+        console.log('📄 Primer registro:', data[0]);
+      }
+      
+      setCorrespondencias(data);
+      
+    } catch (error: any) {
+      console.error('❌ Error completo:', error);
+      console.error('🔧 Detalles del error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+      
+      alert('Error al cargar las correspondencias: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const correspondenciasFiltradas = filtroEstado 
     ? correspondencias.filter(c => c.estado === filtroEstado)
@@ -44,30 +59,28 @@ const CorrespondenciaList: React.FC = () => {
 
   const handleNotificar = async (id: string) => {
     if (window.confirm('¿Notificar al residente?')) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      alert('Residente notificado exitosamente');
-      setCorrespondencias(correspondencias.map(c => 
-        c.idCorrespondencia === id ? { ...c, estado: 'Notificado' } : c
-      ));
+      try {
+        await correspondenciaService.notificarCorrespondencia(id);
+        alert('Residente notificado exitosamente');
+        await cargarCorrespondencias();
+      } catch (error) {
+        console.error('Error notificando:', error);
+        alert('Error al notificar');
+      }
     }
   };
 
   const handleEntregar = async (id: string) => {
     const entregadoA = prompt('¿Nombre de quien retira?');
     if (entregadoA) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      alert('Correspondencia marcada como entregada');
-      setCorrespondencias(correspondencias.map(c => 
-        c.idCorrespondencia === id ? { ...c, estado: 'Entregado' } : c
-      ));
-    }
-  };
-
-  const handleEliminar = async (id: string) => {
-    if (window.confirm('¿Eliminar esta correspondencia?')) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      alert('Correspondencia eliminada');
-      setCorrespondencias(correspondencias.filter(c => c.idCorrespondencia !== id));
+      try {
+        await correspondenciaService.entregarCorrespondencia(id, { entregadoA });
+        alert('Correspondencia marcada como entregada');
+        await cargarCorrespondencias();
+      } catch (error) {
+        console.error('Error entregando:', error);
+        alert('Error al marcar como entregada');
+      }
     }
   };
 
@@ -130,12 +143,14 @@ const CorrespondenciaList: React.FC = () => {
           correspondenciasFiltradas.map((corresp) => (
             <div key={corresp.idCorrespondencia} className="correspondencia-card">
               <div className="card-content">
-                <h3>🏢 {corresp.torreNombre} - {corresp.unidadCodigo}</h3>
+                {/* CORREGIDO: usa torre y unidad, NO torreNombre y unidadCodigo */}
+                <h3>🏢 {corresp.torre} - {corresp.unidad}</h3>
                 <div className="info-grid">
                   <p><strong>📦 Tipo:</strong> {corresp.tipoCorrespondencia}</p>
                   <p><strong>👤 Remitente:</strong> {corresp.remitente}</p>
                   <p><strong>📅 Fecha:</strong> {new Date(corresp.fechaRecepcion).toLocaleDateString()}</p>
-                  <p><strong>👥 Registrado por:</strong> {corresp.usuarioRegistro}</p>
+                  {/* CORREGIDO: usa registradoPor, NO usuarioRegistro */}
+                  <p><strong>👥 Registrado por:</strong> {corresp.registradoPor}</p>
                 </div>
                 {corresp.observacion && (
                   <p className="observaciones"><strong>📝 Observaciones:</strong> {corresp.observacion}</p>
@@ -169,19 +184,13 @@ const CorrespondenciaList: React.FC = () => {
                     ✅ Entregar
                   </button>
                 )}
-
-                <button 
-                  onClick={() => handleEliminar(corresp.idCorrespondencia)}
-                  className="btn btn-eliminar"
-                >
-                  🗑️ Eliminar
-                </button>
               </div>
             </div>
           ))
         )}
       </div>
 
+      {/* Los estilos se mantienen igual */}
       <style>{`
         .correspondencia-list {
           padding: 20px;
@@ -335,15 +344,6 @@ const CorrespondenciaList: React.FC = () => {
 
         .btn-entregar:hover {
           background: #059669;
-        }
-
-        .btn-eliminar {
-          background: #ef4444;
-          color: white;
-        }
-
-        .btn-eliminar:hover {
-          background: #dc2626;
         }
 
         .empty-state {

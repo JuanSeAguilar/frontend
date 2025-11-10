@@ -19,9 +19,12 @@ import Residente from "./pages/admin/Residente";
 import CorrespondenciaList from "./pages/admin/correspondencia/CorrespondenciaList";
 import CorrespondenciaForm from "./pages/admin/correspondencia/CorrespondenciaForm";
 import RegistroUsuario from "./pages/RegistroUsuario";
+<<<<<<< Updated upstream
 import RegistroResidente from "./pages/RegistroResidente";
 import GenerarCargos from "./components/GenerarCargos.js";
 import DashboardPagosAdmin from './pages/admin/DashboardPagosAdmin';
+=======
+>>>>>>> Stashed changes
 
 
 // Guarda
@@ -67,10 +70,14 @@ const App: React.FC = () => {
             <Route path="reportes" element={<Reportes />} />
             <Route path="unidades" element={<Unidades />} />
             <Route path="residente" element={<Residente />} />
+<<<<<<< Updated upstream
             <Route path="registro-usuario" element={<RegistroUsuario />} />
             <Route path="registro-residente" element={<RegistroResidente />} />
             <Route path="/admin/generar-cargos" element={<GenerarCargos />} />
             <Route path="/admin/pagos" element={<DashboardPagosAdmin />} />
+=======
+            <Route path="registrousuario" element={<RegistroUsuario />} />
+>>>>>>> Stashed changes
           </Route>
 
           {/* ===================== GUARDA ===================== */}

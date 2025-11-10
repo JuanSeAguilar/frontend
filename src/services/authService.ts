@@ -1,9 +1,10 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5170/api';
+// CAMBIAR: 5070 → 5170
+const API_BASE_URL = 'http://localhost:5170/api'; // ← PUERTO CORRECTO
 
 export interface LoginData {
-  email: string;
+  correo: string;  // Asegúrate que sea 'correo' no 'email'
   password: string;
 }
 
@@ -18,6 +19,8 @@ export interface AuthResponse {
 
 export const authService = {
   async login(loginData: LoginData): Promise<AuthResponse> {
+    console.log('🔗 Conectando a:', `${API_BASE_URL}/Auth/login`);
+    
     const response = await axios.post(`${API_BASE_URL}/Auth/login`, loginData);
     
     if (response.data.token) {
