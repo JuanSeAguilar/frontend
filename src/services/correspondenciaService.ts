@@ -1,16 +1,6 @@
 // src/services/correspondenciaService.ts
-<<<<<<< Updated upstream
-import api from '../api/axios.ts';
-
-// Tipos (se mantienen igual)
-export interface TipoCorrespondencia {
-  idTipoCorrespondencia: number;
-  nombre: string;
-=======
 import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5170/api';
-
+const API_BASE_URL = 'http://localhost:5170/api'; // ← PUERTO CORRECTO
 export interface Correspondencia {
   
   idCorrespondencia: string;
@@ -24,7 +14,6 @@ export interface Correspondencia {
   fechaEntregado?: string;
   entregadoA?: string;
   registradoPor: string;
->>>>>>> Stashed changes
 }
 
 export interface Unidad {
@@ -44,59 +33,6 @@ export interface RegistrarCorrespondenciaDto {
   observacion: string;
 }
 
-<<<<<<< Updated upstream
-// Servicio REAL con tu API
-export const correspondenciaService = {
-  // Obtener tipos de correspondencia (REAL)
-  getTipos: async (): Promise<TipoCorrespondencia[]> => {
-    const response = await api.get('/api/guarda/correspondencia/tiposCorrespondencia');
-    return response.data;
-  },
-
-  // Obtener unidades (REAL)
-  getUnidades: async (): Promise<Unidad[]> => {
-    const response = await api.get('/api/guarda/correspondencia/unidades');
-    return response.data;
-  },
-
-  // Crear correspondencia (REAL)
-  crear: async (data: CorrespondenciaFormData): Promise<{id: string, message: string}> => {
-    const response = await api.post('/api/guarda/correspondencia', data);
-    return response.data;
-  },
-
-  // Obtener correspondencias (REAL)
-  getCorrespondencias: async (): Promise<Correspondencia[]> => {
-    const response = await api.get('/api/guarda/correspondencia');
-    return response.data;
-  },
-
-  // Obtener pendientes (REAL)
-  getPendientes: async (): Promise<any[]> => {  // ← usa any[] temporalmente
-  const response = await api.get('/api/guarda/correspondencia/pendientes');
-  console.log('📦 Datos de pendientes:', response.data); // ← para ver qué viene
-  return response.data;
-},
-
-  // Notificar correspondencia (REAL)
-  notificar: async (id: string): Promise<{message: string}> => {
-    const response = await api.put(`/api/guarda/correspondencia/${id}/notificar`);
-    return response.data;
-  },
-
-  // Entregar correspondencia (REAL)
-  entregar: async (id: string, entregadoA: string): Promise<{message: string}> => {
-    const response = await api.put(`/api/guarda/correspondencia/${id}/entregar`, {
-      entregadoA: entregadoA
-    });
-    return response.data;
-  },
-
-  // Eliminar correspondencia (SI EXISTE EL ENDPOINT)
-  eliminar: async (id: string): Promise<void> => {
-    // Si no tienes endpoint de eliminar, quita esto
-    await api.delete(`/api/guarda/correspondencia/${id}`);
-=======
 export interface EntregarDto {
   entregadoA: string;
 }
@@ -166,17 +102,7 @@ class CorrespondenciaService {
     }
   }
 
-  async obtenerUnidades(): Promise<Unidad[]> {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/unidades`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error obteniendo unidades:', error);
-      return this.obtenerUnidadesMock();
-    }
-  }
+  
 
   async obtenerTiposCorrespondencia(): Promise<TipoCorrespondencia[]> {
     try {
@@ -190,13 +116,6 @@ class CorrespondenciaService {
     }
   }
 
-  private obtenerUnidadesMock(): Unidad[] {
-    return [
-      { idUnidad: '123e4567-e89b-12d3-a456-426614174000', codigoCompleto: 'Torre A - 101', torreNombre: 'Torre A' },
-      { idUnidad: '123e4567-e89b-12d3-a456-426614174001', codigoCompleto: 'Torre A - 102', torreNombre: 'Torre A' },
-    ];
->>>>>>> Stashed changes
-  }
 
   private obtenerTiposMock(): TipoCorrespondencia[] {
     return [

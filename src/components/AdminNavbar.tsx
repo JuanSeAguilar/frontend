@@ -62,7 +62,6 @@ const AdminNavbar: React.FC = () => {
             <span className="nav-icon">📈</span>
             Reportes
           </Link>
-<<<<<<< Updated upstream
           
           <Link to="/admin/registro-usuario" className={isActive('registro-usuario')}>
             <span className="nav-icon">📝</span>
@@ -72,11 +71,6 @@ const AdminNavbar: React.FC = () => {
           <Link to="/admin/registro-residente" className={isActive('registro-residente')}>
             <span className="nav-icon">📝</span>
             Registro Residente
-=======
-           <Link to="/pages/RegistroUsuario" className={isActive('RegistroUsuario')}>
-            <span className="nav-icon">📬</span>
-            RegistroUsuario
->>>>>>> Stashed changes
           </Link>
         </div>
 
