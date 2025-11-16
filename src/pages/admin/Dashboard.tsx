@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
 
         .stat-card {
           background: linear-gradient(135deg, var(--tw-gradient-stops));
-          color: white;
+          color: black;
           padding: 24px;
           border-radius: 16px;
           cursor: pointer;

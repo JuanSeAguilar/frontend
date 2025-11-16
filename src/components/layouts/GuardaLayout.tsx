@@ -1,28 +1,34 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import GuardaNavbar from '../GuardaNavbar';
+import React from "react";
+import { Outlet } from "react-router-dom";
+import GuardaNavbar from "../GuardaNavbar";
 
 const GuardaLayout: React.FC = () => {
   return (
     <div className="guarda-layout">
       <GuardaNavbar />
-      <main className="layout-content">
-        <Outlet />
+      <main className="guarda-content">
+        <div className="guarda-content-inner">
+          <Outlet />
+        </div>
       </main>
-      
+
       <style>{`
         .guarda-layout {
           min-height: 100vh;
-          background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+          background: radial-gradient(circle at top, #ecfdf5 0, #d1fae5 40%, #f9fafb 100%);
         }
-        
-        .layout-content {
-          padding: 20px;
+
+        .guarda-content {
+          padding: 18px 12px 30px;
+        }
+
+        .guarda-content-inner {
+          max-width: 1200px;
+          margin: 0 auto;
         }
       `}</style>
     </div>
   );
 };
 
-// ¡AGREGA ESTA LÍNEA!
 export default GuardaLayout;

@@ -13,6 +13,10 @@ export interface Residente {
 }
 
 export const residenteService = {
+   getAll: async (): Promise<Residente[]> => {
+    const { data } = await api.get("/Residente");
+    return data;
+  },
   create: async (residente: Residente): Promise<void> => {
     const payload = {
       ...residente,

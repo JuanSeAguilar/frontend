@@ -31,6 +31,7 @@ import ListaVisitas from "./pages/Guarda/ListaVisitas";
 import ControlVisitantes from "./pages/Guarda/ControlVisitantes";
 import RegistroCorrespondencia from "./pages/Guarda/RegistroCorrespondencia";
 import CorrespondenciaPendiente from "./pages/Guarda/CorrespondenciaPendiente";
+import ValidarAutorizado from "./pages/Guarda/ValidarAutorizado";
 
 // Residente
 import DashboardResidente from "./pages/Residente/DashboardResidente";
@@ -89,6 +90,7 @@ const App: React.FC = () => {
             <Route path="control-visitantes" element={<ControlVisitantes />} />
             <Route path="registro-correspondencia" element={<RegistroCorrespondencia />} />
             <Route path="correspondencia-pendiente" element={<CorrespondenciaPendiente />} />
+            <Route path="validar-autorizado" element={<ValidarAutorizado />} />
           </Route>
 
           {/* ===================== RESIDENTE ===================== */}

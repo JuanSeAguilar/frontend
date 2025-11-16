@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import type { DashboardStats, ActividadReciente } from '../../services/dashboardService';
-import { dashboardService } from '../../services/dashboardService';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import type {
+  DashboardStats,
+  ActividadReciente,
+} from "../../services/dashboardService";
+import { dashboardService } from "../../services/dashboardService";
 
 const DashboardGuarda: React.FC = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     correspondenciaPendiente: 0,
     visitantesHoy: 0,
-    entregasHoy: 0
+    entregasHoy: 0,
   });
-  const [actividadReciente, setActividadReciente] = useState<ActividadReciente[]>([]);
+  const [actividadReciente, setActividadReciente] = useState<
+    ActividadReciente[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,68 +25,71 @@ const DashboardGuarda: React.FC = () => {
   const cargarDashboard = async () => {
     try {
       setLoading(true);
-      
+
       const [statsData, actividadData] = await Promise.all([
         dashboardService.getStats().catch(() => ({
           correspondenciaPendiente: 0,
           visitantesHoy: 0,
-          entregasHoy: 0
+          entregasHoy: 0,
         })),
-        dashboardService.getActividadReciente().catch(() => [])
+        dashboardService.getActividadReciente().catch(() => []),
       ]);
-      
+
       setStats(statsData);
       setActividadReciente(actividadData);
     } catch (error) {
-      console.error('Error cargando dashboard:', error);
+      console.error("Error cargando dashboard:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const statsCards = [
-    { 
-      title: 'Correspondencia Pendiente', 
-      value: stats.correspondenciaPendiente, 
-      icon: '📬', 
-      color: 'blue',
-      onClick: () => navigate('/Guarda/correspondencia-pendiente')
+    {
+      title: "Correspondencia pendiente",
+      value: stats.correspondenciaPendiente,
+      icon: "📬",
+      onClick: () => navigate("/Guarda/correspondencia-pendiente"),
     },
-    { 
-      title: 'Visitantes Hoy', 
-      value: stats.visitantesHoy, 
-      icon: '👤', 
-      color: 'green',
-      onClick: () => navigate('/Guarda/visitas')
+    {
+      title: "Visitantes hoy",
+      value: stats.visitantesHoy,
+      icon: "👤",
+      onClick: () => navigate("/Guarda/visitas"),
     },
-    { 
-      title: 'Entregas Hoy', 
-      value: stats.entregasHoy, 
-      icon: '✅', 
-      color: 'purple',
-      onClick: () => navigate('/Guarda/correspondencia-pendiente')
-    }
+    {
+      title: "Entregas hoy",
+      value: stats.entregasHoy,
+      icon: "✅",
+      onClick: () => navigate("/Guarda/correspondencia-pendiente"),
+    },
   ];
 
   const quickActions = [
     {
-      icon: '📬',
-      title: 'Registrar Correspondencia',
-      description: 'Registrar nueva correspondencia',
-      onClick: () => navigate('/Guarda/registro-correspondencia')
+      icon: "📬",
+      title: "Registrar correspondencia",
+      description: "Registrar nueva correspondencia",
+      onClick: () => navigate("/Guarda/registro-correspondencia"),
     },
     {
-      icon: '👤',
-      title: 'Registrar Visitante',
-      description: 'Registrar ingreso de visitante',
-      onClick: () => navigate('/Guarda/registro-visita')
+      icon: "👤",
+      title: "Registrar visitante",
+      description: "Registrar ingreso de visitante",
+      onClick: () => navigate("/Guarda/registro-visita"),
     },
     {
-      icon: '📋',
-      title: 'Ver Pendientes',
-      description: 'Revisar correspondencia pendiente',
-      onClick: () => navigate('/Guarda/correspondencia-pendiente')
-    }
+      icon: "📋",
+      title: "Ver pendientes",
+      description: "Revisar correspondencia pendiente",
+      onClick: () => navigate("/Guarda/correspondencia-pendiente"),
+    },
+    {
+      icon: "🔎",
+      title: "Validar autorizado",
+      description: "Verificar personas autorizadas",
+      onClick: () => navigate("/Guarda/validar-autorizado"),
+    },
   ];
 
   const formatTiempo = (fechaString: string) => {
@@ -91,42 +99,62 @@ const DashboardGuarda: React.FC = () => {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
 
-    if (diffMins < 1) return 'Ahora mismo';
+    if (diffMins < 1) return "Ahora mismo";
     if (diffMins < 60) return `Hace ${diffMins} min`;
     if (diffHours < 24) return `Hace ${diffHours} h`;
-    
-    return fecha.toLocaleDateString('es-ES');
+
+    return fecha.toLocaleDateString("es-ES");
   };
 
   if (loading) {
     return (
-      <div className="dashboard-guarda">
-        <div className="container">
-          <div className="loading">
-            <div className="spinner">⏳</div>
+      <div className="dashboard-guarda dashboard-guarda--loading">
+        <div className="dg-container">
+          <div className="dg-loading">
+            <div className="dg-spinner">⏳</div>
             <p>Cargando datos en tiempo real...</p>
           </div>
         </div>
+
         <style>{`
           .dashboard-guarda {
             background: #f8fafc;
-            min-height: 100vh;
+            min-height: calc(100vh - 0px);
+            padding: 18px 0 30px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+              sans-serif;
+          }
+
+          .dashboard-guarda--loading {
             display: flex;
             align-items: center;
             justify-content: center;
           }
-          .loading {
+
+          .dg-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 12px;
+          }
+
+          .dg-loading {
             text-align: center;
             padding: 60px 20px;
           }
-          .spinner {
-            font-size: 48px;
-            margin-bottom: 16px;
-            animation: spin 2s linear infinite;
+
+          .dg-spinner {
+            font-size: 42px;
+            margin-bottom: 10px;
+            animation: dg-spin 2s linear infinite;
           }
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+          @keyframes dg-spin {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
           }
         `}</style>
       </div>
@@ -135,326 +163,340 @@ const DashboardGuarda: React.FC = () => {
 
   return (
     <div className="dashboard-guarda">
-      <div className="container">
+      <div className="dg-container">
         {/* Header */}
-        <div className="header">
-          <div className="title-section">
-            <h1>🛡️ Dashboard Guarda</h1>
-            <p>Control y gestión de seguridad - Datos en tiempo real</p>
+        <header className="dg-header">
+          <div className="dg-title-block">
+            <h1>🛡️ Panel del guarda</h1>
+            <p>Control y gestión de seguridad en tiempo real.</p>
           </div>
-          <div className="welcome">
-            <span>Buen trabajo, Guarda!</span>
-          </div>
-        </div>
+          <div className="dg-welcome-pill">Buen trabajo, guarda 👊</div>
+        </header>
 
         {/* Stats */}
-        <div className="stats-grid">
+        <section className="dg-stats-grid">
           {statsCards.map((stat, index) => (
-            <div 
-              key={index} 
-              className="stat-card"
+            <button
+              key={index}
+              type="button"
+              className="dg-stat-card"
               onClick={stat.onClick}
             >
-              <div className="stat-icon">{stat.icon}</div>
-              <div className="stat-content">
+              <div className="dg-stat-icon">{stat.icon}</div>
+              <div className="dg-stat-content">
                 <h3>{stat.value}</h3>
                 <p>{stat.title}</p>
               </div>
-            </div>
+            </button>
           ))}
-        </div>
+        </section>
 
-        {/* Quick Actions */}
-        <div className="section">
-          <h2>⚡ Acciones Rápidas</h2>
-          <div className="actions-grid">
+        {/* Acciones rápidas */}
+        <section className="dg-section">
+          <div className="dg-section-header">
+            <h2>⚡ Acciones rápidas</h2>
+          </div>
+          <div className="dg-actions-grid">
             {quickActions.map((action, index) => (
-              <button 
+              <button
                 key={index}
-                className="action-card"
+                type="button"
+                className="dg-action-card"
                 onClick={action.onClick}
               >
-                <div className="action-icon">{action.icon}</div>
-                <div className="action-content">
+                <div className="dg-action-icon">{action.icon}</div>
+                <div className="dg-action-content">
                   <h4>{action.title}</h4>
                   <p>{action.description}</p>
                 </div>
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Recent Activity */}
-        <div className="section">
-          <h2>📋 Actividad Reciente</h2>
-          <div className="activity-list">
+        {/* Actividad reciente */}
+        <section className="dg-section">
+          <div className="dg-section-header">
+            <h2>📋 Actividad reciente</h2>
+          </div>
+          <div className="dg-activity-list">
             {actividadReciente.length === 0 ? (
-              <div className="empty-activity">
-                <div className="empty-icon">📊</div>
-                <p>No hay actividad reciente</p>
+              <div className="dg-empty-activity">
+                <div className="dg-empty-icon">📊</div>
+                <p>No hay actividad reciente registrada.</p>
               </div>
             ) : (
               actividadReciente.map((actividad) => (
-                <div key={actividad.id} className="activity-item">
-                  <div className="activity-icon">{actividad.icono}</div>
-                  <div className="activity-content">
+                <div key={actividad.id} className="dg-activity-item">
+                  <div className="dg-activity-icon">{actividad.icono}</div>
+                  <div className="dg-activity-content">
                     <h4>{actividad.titulo}</h4>
                     <p>{actividad.descripcion}</p>
                   </div>
-                  <span className="time">{formatTiempo(actividad.fecha)}</span>
+                  <span className="dg-activity-time">
+                    {formatTiempo(actividad.fecha)}
+                  </span>
                 </div>
               ))
             )}
           </div>
-        </div>
+        </section>
       </div>
 
       <style>{`
         .dashboard-guarda {
           background: #f8fafc;
-          min-height: 100vh;
-          padding: 20px;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          min-height: calc(100vh - 0px);
+          padding: 18px 0 30px;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+            sans-serif;
         }
-        
-        .container {
+
+        .dg-container {
           max-width: 1200px;
           margin: 0 auto;
+          padding: 0 12px;
         }
-        
+
         /* Header */
-        .header {
+        .dg-header {
           display: flex;
+          align-items: center;
           justify-content: space-between;
-          align-items: center;
-          background: white;
-          padding: 25px;
-          border-radius: 15px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-          margin-bottom: 30px;
+          gap: 12px;
+          background: #ffffff;
+          padding: 18px 20px;
+          border-radius: 16px;
           border: 1px solid #e2e8f0;
+          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+          margin-bottom: 20px;
         }
-        
-        .title-section h1 {
+
+        .dg-title-block h1 {
           margin: 0;
-          color: #2d3748;
-          font-size: 1.8rem;
+          font-size: 22px;
           font-weight: 700;
+          color: #1f2933;
         }
-        
-        .title-section p {
-          margin: 5px 0 0 0;
-          color: #718096;
-          font-size: 0.95rem;
+
+        .dg-title-block p {
+          margin: 4px 0 0;
+          font-size: 13px;
+          color: #64748b;
         }
-        
-        .welcome {
-          background: #48bb78;
-          color: white;
-          padding: 10px 20px;
-          border-radius: 25px;
+
+        .dg-welcome-pill {
+          padding: 6px 14px;
+          border-radius: 999px;
+          background: #22c55e;
+          color: #ecfdf3;
+          font-size: 13px;
           font-weight: 600;
         }
-        
-        /* Stats Grid */
-        .stats-grid {
+
+        /* Stats */
+        .dg-stats-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 20px;
-          margin-bottom: 30px;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 16px;
+          margin-bottom: 22px;
         }
-        
-        .stat-card {
-          background: white;
-          padding: 25px;
-          border-radius: 15px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-          cursor: pointer;
-          transition: all 0.3s ease;
+
+        .dg-stat-card {
           display: flex;
           align-items: center;
-          gap: 15px;
+          gap: 14px;
+          padding: 18px 18px;
+          border-radius: 16px;
           border: 1px solid #e2e8f0;
-        }
-        
-        .stat-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-          border-color: #cbd5e0;
-        }
-        
-        .stat-icon {
-          font-size: 2.5rem;
-          padding: 15px;
-          border-radius: 12px;
-          background: #bee3f8;
-        }
-        
-        .stat-content h3 {
-          margin: 0;
-          font-size: 2.2rem;
-          font-weight: 700;
-          color: #2d3748;
-        }
-        
-        .stat-content p {
-          margin: 5px 0 0 0;
-          color: #718096;
-          font-size: 0.9rem;
-        }
-        
-        /* Sections */
-        .section {
-          background: white;
-          border-radius: 15px;
-          padding: 25px;
-          margin-bottom: 25px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-          border: 1px solid #e2e8f0;
-        }
-        
-        .section h2 {
-          margin: 0 0 20px 0;
-          color: #2d3748;
-          font-size: 1.4rem;
-          font-weight: 600;
-        }
-        
-        /* Actions Grid */
-        .actions-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          gap: 15px;
-        }
-        
-        .action-card {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 20px;
-          text-align: left;
+          background: #ffffff;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
           cursor: pointer;
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: flex-start;
-          gap: 15px;
+          transition:
+            transform 0.1s ease,
+            box-shadow 0.15s ease,
+            border-color 0.15s;
         }
-        
-        .action-card:hover {
-          border-color: #667eea;
-          background: white;
+
+        .dg-stat-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+          box-shadow: 0 16px 30px rgba(15, 23, 42, 0.1);
+          border-color: #cbd5e1;
         }
-        
-        .action-icon {
-          font-size: 1.8rem;
-          margin-top: 2px;
+
+        .dg-stat-icon {
+          font-size: 32px;
+          padding: 12px;
+          border-radius: 12px;
+          background: #eff6ff;
         }
-        
-        .action-content h4 {
-          margin: 0 0 8px 0;
-          color: #2d3748;
-          font-size: 1.05rem;
-          font-weight: 600;
-        }
-        
-        .action-content p {
+
+        .dg-stat-content h3 {
           margin: 0;
-          color: #718096;
-          font-size: 0.9rem;
+          font-size: 28px;
+          font-weight: 700;
+          color: #111827;
         }
-        
-        /* Activity List */
-        .activity-list {
-          display: flex;
-          flex-direction: column;
+
+        .dg-stat-content p {
+          margin: 4px 0 0;
+          font-size: 13px;
+          color: #6b7280;
+        }
+
+        /* Section */
+        .dg-section {
+          background: #ffffff;
+          border-radius: 16px;
+          border: 1px solid #e2e8f0;
+          padding: 18px 18px 20px;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+          margin-bottom: 18px;
+        }
+
+        .dg-section-header h2 {
+          margin: 0 0 14px;
+          font-size: 18px;
+          font-weight: 600;
+          color: #1f2933;
+        }
+
+        /* Quick actions */
+        .dg-actions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
           gap: 12px;
         }
-        
-        .activity-item {
+
+        .dg-action-card {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          border-radius: 14px;
+          border: 1px solid #e2e8f0;
+          background: #f9fafb;
+          padding: 14px 14px;
+          cursor: pointer;
+          transition:
+            border-color 0.15s ease,
+            background 0.15s ease,
+            box-shadow 0.15s ease,
+            transform 0.1s ease;
+        }
+
+        .dg-action-card:hover {
+          background: #ffffff;
+          border-color: #4f46e5;
+          box-shadow: 0 12px 26px rgba(79, 70, 229, 0.12);
+          transform: translateY(-2px);
+        }
+
+        .dg-action-icon {
+          font-size: 22px;
+          margin-top: 2px;
+        }
+
+        .dg-action-content h4 {
+          margin: 0 0 4px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #111827;
+        }
+
+        .dg-action-content p {
+          margin: 0;
+          font-size: 13px;
+          color: #6b7280;
+        }
+
+        /* Activity */
+        .dg-activity-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .dg-activity-item {
           display: flex;
           align-items: center;
-          gap: 15px;
-          padding: 18px;
-          background: #f8fafc;
+          gap: 12px;
+          padding: 12px 12px;
           border-radius: 12px;
-          transition: all 0.3s ease;
           border: 1px solid #e2e8f0;
+          background: #f9fafb;
+          transition:
+            background 0.15s ease,
+            box-shadow 0.15s ease,
+            transform 0.1s ease;
         }
-        
-        .activity-item:hover {
-          background: white;
-          transform: translateX(3px);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+        .dg-activity-item:hover {
+          background: #ffffff;
+          box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+          transform: translateX(2px);
         }
-        
-        .activity-icon {
-          font-size: 1.5rem;
+
+        .dg-activity-icon {
+          font-size: 20px;
         }
-        
-        .activity-content {
+
+        .dg-activity-content {
           flex: 1;
         }
-        
-        .activity-content h4 {
-          margin: 0 0 5px 0;
-          color: #2d3748;
-          font-size: 1rem;
+
+        .dg-activity-content h4 {
+          margin: 0 0 3px;
+          font-size: 14px;
           font-weight: 600;
+          color: #111827;
         }
-        
-        .activity-content p {
+
+        .dg-activity-content p {
           margin: 0;
-          color: #718096;
-          font-size: 0.9rem;
+          font-size: 13px;
+          color: #6b7280;
         }
-        
-        .time {
-          color: #a0aec0;
-          font-size: 0.85rem;
+
+        .dg-activity-time {
+          font-size: 12px;
+          color: #9ca3af;
           font-weight: 500;
         }
-        
-        .empty-activity {
+
+        .dg-empty-activity {
           text-align: center;
-          padding: 50px 20px;
-          color: #718096;
+          padding: 40px 10px;
+          color: #6b7280;
+          font-size: 14px;
         }
-        
-        .empty-icon {
-          font-size: 3.5rem;
-          margin-bottom: 15px;
+
+        .dg-empty-icon {
+          font-size: 40px;
+          margin-bottom: 8px;
           opacity: 0.5;
         }
-        
+
         /* Responsive */
         @media (max-width: 768px) {
-          .dashboard-guarda {
-            padding: 15px;
-          }
-          
-          .header {
-            flex-direction: column;
-            gap: 15px;
-            text-align: center;
-          }
-          
-          .stats-grid {
-            grid-template-columns: 1fr;
-          }
-          
-          .actions-grid {
-            grid-template-columns: 1fr;
-          }
-          
-          .activity-item {
+          .dg-header {
             flex-direction: column;
             align-items: flex-start;
-            gap: 10px;
           }
-          
-          .time {
+
+          .dg-stats-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .dg-actions-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .dg-activity-item {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .dg-activity-time {
             align-self: flex-end;
           }
         }

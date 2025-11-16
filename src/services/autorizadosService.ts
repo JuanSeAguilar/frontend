@@ -1,27 +1,28 @@
 import api from "../api/axios";
 
+type RegistrarAutorizadoDto = {
+  nombre: string;
+  apellidos: string;
+  numeroDocumento: string;
+  idTipoDocumento: number;
+  idTipoRelacionAutorizado: number;
+  telefono?: string;
+  correoElectronico?: string;
+};
+
 export const autorizadosService = {
-  // 🔹 Obtener todos los autorizados
-  async getAll() {
-    const { data } = await api.get("/api/Autorizados");
-    return data;
-  },
+  listar: async () =>
+    (await api.get("/api/residente/autorizados")).data,
 
-  // 🔹 Registrar nuevo autorizado
-  async create(autorizado: any) {
-    const { data } = await api.post("/api/Autorizados", autorizado);
-    return data;
-  },
+  registrar: async (dto: RegistrarAutorizadoDto) =>
+    (await api.post("/api/residente/autorizados", dto)).data,
 
-  // 🔹 Actualizar autorizado existente
-  async update(id: string, autorizado: any) {
-    const { data } = await api.put(`/api/Autorizados/${id}`, autorizado);
-    return data;
-  },
+  actualizar: async (id: string, dto: RegistrarAutorizadoDto) =>
+    (await api.put(`/api/residente/autorizados/${id}`, dto)).data,
 
-  // 🔹 Eliminar autorizado
-  async delete(id: string) {
-    const { data } = await api.delete(`/api/Autorizados/${id}`);
-    return data;
-  },
+  eliminar: async (id: string) =>
+    (await api.delete(`/api/residente/autorizados/${id}`)).data,
+
+  validar: async (documento: string) =>
+    (await api.get(`/api/guarda/autorizados/validar?documento=${documento}`)).data,
 };
