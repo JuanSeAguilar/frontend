@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../../../src/api/axios.ts"; 
+import { correspondenciaService } from "../../services/correspondenciaService";
 
 interface UnidadApi {
   idUnidad: string;
-  nombreCompleto: string; 
+  nombreCompleto: string;
 }
 
 interface TipoCorrespondenciaApi {
@@ -14,38 +14,34 @@ interface TipoCorrespondenciaApi {
 
 const RegistroCorrespondencia: React.FC = () => {
   const nav = useNavigate();
-  
+
   const [unidades, setUnidades] = useState<UnidadApi[]>([]);
   const [tipos, setTipos] = useState<TipoCorrespondenciaApi[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ESTADO CORREGIDO - observacion en singular
   const [form, setForm] = useState({
     idUnidad: "",
-    idTipoCorrespondencia: 0,
+    idTipoCorrespondencia: "", // lo manejamos como string y casteamos al enviar
     remitente: "",
-    observacion: "", // ✅ CORREGIDO: estaba 'observacion'
+    observacion: "",
   });
 
   useEffect(() => {
     const cargarDatos = async () => {
       setLoading(true);
       try {
-        // ✅ URLs CORREGIDAS - apuntan al controller de correspondencia
-        const resUnidades = await api.get('/api/guarda/correspondencia/unidades'); 
-        setUnidades(resUnidades.data);
+        const resUnidades = await correspondenciaService.getUnidades();
+        setUnidades(resUnidades);
 
-        const resTipos = await api.get('/api/guarda/correspondencia/tiposCorrespondencia');
-        setTipos(resTipos.data);
+        const resTipos = await correspondenciaService.getTipos();
+        setTipos(resTipos);
 
-        // Set primer tipo como default si hay datos
-        if (resTipos.data.length > 0) {
-          setForm(prev => ({ 
-            ...prev, 
-            idTipoCorrespondencia: resTipos.data[0].idTipoCorrespondencia 
+        if (resTipos.length > 0) {
+          setForm((prev) => ({
+            ...prev,
+            idTipoCorrespondencia: resTipos[0].idTipoCorrespondencia.toString(),
           }));
         }
-
       } catch (error) {
         console.error("Error cargando datos iniciales", error);
         alert("Error cargando datos. Revise la consola.");
@@ -53,38 +49,55 @@ const RegistroCorrespondencia: React.FC = () => {
         setLoading(false);
       }
     };
-    
+
     cargarDatos();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value } = e.target;
-    
-    setForm((prev) => ({ 
-      ...prev, 
-      [name]: name === 'idTipoCorrespondencia' ? parseInt(value) : value 
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.idUnidad || !form.remitente) {
-      alert("⚠️ Debes seleccionar una unidad y escribir el remitente.");
+
+    if (!form.idUnidad || !form.remitente || !form.idTipoCorrespondencia) {
+      alert("⚠️ Debes seleccionar una unidad, tipo y escribir el remitente.");
       return;
     }
 
     setLoading(true);
 
     try {
-      console.log("📤 Enviando a la API:", form);
-      
-      // ✅ URL CORRECTA
-      const response = await api.post('/api/guarda/correspondencia', form);
-      
-      console.log("✅ Respuesta de la API:", response.data);
-      alert("✅ Correspondencia registrada exitosamente");
-      nav("/Guarda/correspondencia-pendiente");
+      const payload = {
+        idUnidad: form.idUnidad,
+        idTipoCorrespondencia: parseInt(form.idTipoCorrespondencia, 10),
+        remitente: form.remitente,
+        observacion: form.observacion || undefined,
+      };
 
+      console.log("📤 Enviando a la API:", payload);
+
+      await correspondenciaService.registrar(payload);
+
+      alert("✅ Correspondencia registrada exitosamente");
+
+      // Reset suave
+      setForm((prev) => ({
+        idUnidad: "",
+        idTipoCorrespondencia: prev.idTipoCorrespondencia, // deja el mismo tipo seleccionado
+        remitente: "",
+        observacion: "",
+      }));
+
+      nav("/Guarda/correspondencia-pendiente");
     } catch (error) {
       console.error("❌ Error al registrar correspondencia:", error);
       alert("Error al registrar. Revise la consola.");
@@ -100,8 +113,10 @@ const RegistroCorrespondencia: React.FC = () => {
         Formulario para registrar paquetes y documentos recibidos.
       </p>
 
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-4 space-y-4">
-        
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-md rounded-lg p-4 space-y-4"
+      >
         {/* SELECT UNIDAD */}
         <select
           name="idUnidad"
@@ -127,7 +142,7 @@ const RegistroCorrespondencia: React.FC = () => {
           className="border p-2 rounded w-full"
           required
         />
-        
+
         {/* SELECT TIPO */}
         <select
           name="idTipoCorrespondencia"
@@ -138,15 +153,18 @@ const RegistroCorrespondencia: React.FC = () => {
         >
           <option value="">Selecciona un tipo *</option>
           {tipos.map((t) => (
-            <option key={t.idTipoCorrespondencia} value={t.idTipoCorrespondencia}>
+            <option
+              key={t.idTipoCorrespondencia}
+              value={t.idTipoCorrespondencia}
+            >
               {t.nombre}
             </option>
           ))}
         </select>
 
-        {/* TEXTAREA - NAME CORREGIDO */}
+        {/* TEXTAREA OBSERVACIÓN */}
         <textarea
-          name="observacion" // ✅ CORREGIDO
+          name="observacion"
           placeholder="📝 Observaciones (opcional)"
           value={form.observacion}
           onChange={handleChange}
@@ -160,7 +178,7 @@ const RegistroCorrespondencia: React.FC = () => {
             disabled={loading}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:bg-gray-400"
           >
-            {loading ? 'Registrando...' : 'Registrar'}
+            {loading ? "Registrando..." : "Registrar"}
           </button>
           <button
             type="button"

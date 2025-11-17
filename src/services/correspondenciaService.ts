@@ -1,129 +1,36 @@
 // src/services/correspondenciaService.ts
-import axios from 'axios';
-const API_BASE_URL = 'http://localhost:5170/api'; // ← PUERTO CORRECTO
-export interface Correspondencia {
-  
-  idCorrespondencia: string;
-  torre: string;           // ← Viene del backend como "torre"
-  unidad: string;          // ← Viene del backend como "unidad" 
-  tipoCorrespondencia: string;
-  remitente: string;
-  observacion?: string;
-  fechaRecepcion: string;
-  estado: string;
-  fechaEntregado?: string;
-  entregadoA?: string;
-  registradoPor: string;
-}
+import api from "../api/axios";
 
-export interface Unidad {
-  idUnidad: string;
-  nombreCompleto: string;
-}
+export const correspondenciaService = {
+  // RESIDENTE
+  obtenerPorResidente: async (soloPendiente?: boolean) =>
+    (
+      await api.get("/api/residente/correspondencia", {
+        params: { soloPendiente },
+      })
+    ).data,
 
-export interface TipoCorrespondencia {
-  idTipoCorrespondencia: number;
-  nombre: string;
-}
+  // GUARDA – registro
+  registrar: async (dto: {
+    idUnidad: string;
+    idTipoCorrespondencia: number;
+    remitente?: string;
+    observacion?: string;
+  }) => (await api.post("/api/guarda/correspondencia", dto)).data,
 
-export interface RegistrarCorrespondenciaDto {
-  idUnidad: string;
-  idTipoCorrespondencia: number;
-  remitente: string;
-  observacion: string;
-}
+  // GUARDA – unidades para el select
+  getUnidades: async () =>
+    (await api.get("/api/guarda/correspondencia/unidades")).data,
 
-export interface EntregarDto {
-  entregadoA: string;
-}
+  // GUARDA – tipos de correspondencia para el select
+  getTipos: async () =>
+    (await api.get("/api/guarda/correspondencia/tiposCorrespondencia")).data,
 
-class CorrespondenciaService {
-  private getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-      Authorization: `Bearer ${token}`
-    };
-  }
+  // GUARDA – pendientes para el dashboard
+  getPendientes: async () =>
+    (await api.get("/api/guarda/correspondencia/pendientes")).data,
 
-  async obtenerCorrespondencias(): Promise<Correspondencia[]> {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/guarda/correspondencia`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error obteniendo correspondencias:', error);
-      throw error;
-    }
-  }
-
-  async obtenerPendientes(): Promise<Correspondencia[]> {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/guarda/correspondencia/pendientes`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error obteniendo pendientes:', error);
-      throw error;
-    }
-  }
-
-  async registrarCorrespondencia(datos: RegistrarCorrespondenciaDto): Promise<void> {
-    try {
-      await axios.post(`${API_BASE_URL}/guarda/correspondencia`, datos, {
-        headers: this.getAuthHeaders()
-      });
-    } catch (error) {
-      console.error('Error registrando correspondencia:', error);
-      throw error;
-    }
-  }
-
-  async notificarCorrespondencia(id: string): Promise<void> {
-    try {
-      await axios.put(`${API_BASE_URL}/guarda/correspondencia/${id}/notificar`, {}, {
-        headers: this.getAuthHeaders()
-      });
-    } catch (error) {
-      console.error('Error notificando correspondencia:', error);
-      throw error;
-    }
-  }
-
-  async entregarCorrespondencia(id: string, datos: EntregarDto): Promise<void> {
-    try {
-      await axios.put(`${API_BASE_URL}/guarda/correspondencia/${id}/entregar`, datos, {
-        headers: this.getAuthHeaders()
-      });
-    } catch (error) {
-      console.error('Error entregando correspondencia:', error);
-      throw error;
-    }
-  }
-
-  
-
-  async obtenerTiposCorrespondencia(): Promise<TipoCorrespondencia[]> {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/tipos-correspondencia`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error obteniendo tipos:', error);
-      return this.obtenerTiposMock();
-    }
-  }
-
-
-  private obtenerTiposMock(): TipoCorrespondencia[] {
-    return [
-      { idTipoCorrespondencia: 1, nombre: 'Carta' },
-      { idTipoCorrespondencia: 2, nombre: 'Paquete' },
-      { idTipoCorrespondencia: 3, nombre: 'Documento' },
-    ];
-  }
-}
-
-export const correspondenciaService = new CorrespondenciaService();
+  // GUARDA – notificar al residente
+  notificar: async (id: string) =>
+    (await api.put(`/api/guarda/correspondencia/${id}/notificar`)).data,
+};

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { correspondenciaService } from "../../services/correspondenciaService";
 
 type Correspondencia = {
-  idCorrespondencia: number;
+  idCorrespondencia: string;          // ✅ GUID => string
   tipoCorrespondencia: string;
   fechaRecepcion: string;
   estado: string;
@@ -12,20 +12,23 @@ type Correspondencia = {
 const MisCorrespondencias: React.FC = () => {
   const [correspondencias, setCorrespondencias] = useState<Correspondencia[]>([]);
   const [loading, setLoading] = useState(true);
+  const [soloPendiente, setSoloPendiente] = useState(false);
+
+  const cargar = async (onlyPending: boolean) => {
+    setLoading(true);
+    try {
+      const data = await correspondenciaService.obtenerPorResidente(onlyPending);
+      setCorrespondencias(data);
+    } catch {
+      alert("❌ Error al cargar la correspondencia");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const cargar = async () => {
-      try {
-        const data = await correspondenciaService.obtenerPorResidente();
-        setCorrespondencias(data);
-      } catch {
-        alert("❌ Error al cargar la correspondencia");
-      } finally {
-        setLoading(false);
-      }
-    };
-    cargar();
-  }, []);
+    cargar(soloPendiente);
+  }, [soloPendiente]);
 
   if (loading) return <p style={{ textAlign: "center" }}>Cargando...</p>;
 
@@ -34,9 +37,22 @@ const MisCorrespondencias: React.FC = () => {
       <div className="card">
         <h2>📦 Mi Correspondencia</h2>
 
+        <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-end" }}>
+          <label style={{ fontSize: 14, color: "#475569", display: "flex", gap: 6, alignItems: "center" }}>
+            <input
+              type="checkbox"
+              checked={soloPendiente}
+              onChange={(e) => setSoloPendiente(e.target.checked)}
+            />
+            Mostrar solo pendiente
+          </label>
+        </div>
+
         {correspondencias.length === 0 ? (
           <p style={{ textAlign: "center", color: "#64748b" }}>
-            No tienes correspondencia registrada.
+            {soloPendiente
+              ? "No tienes correspondencia pendiente."
+              : "No tienes correspondencia registrada."}
           </p>
         ) : (
           <table>
