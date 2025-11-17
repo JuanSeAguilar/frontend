@@ -1,14 +1,31 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api, { storage } from "../api/axios";
+import { jwtDecode } from "jwt-decode";
 
 export type Role = "Administrador" | "Guarda" | "Residente";
 
 export interface User {
-  id: string;
-  email: string;
-  nombre: string;
+  id: string;      // IdUsuario (GUID del backend)
+  email: string;   // correo
+  nombre: string;  // nombre a mostrar (por ahora uso el correo)
   roles: Role[];
   role?: Role;
+}
+
+export interface LoginResponse {
+  token: string;
+  username: string;
+  roles: string[];
+}
+
+interface JwtPayload {
+  id?: string;
+  sub?: string;
+  userId?: string;
+  uid?: string;
+  pid?: string;
+  email?: string;
+  [key: string]: any;
 }
 
 interface AuthContextType {
@@ -26,39 +43,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(storage.get());
 
+  // Hidratar estado desde storage
   useEffect(() => {
     const t = storage.get();
     if (t) {
       api.defaults.headers.common.Authorization = `Bearer ${t}`;
       setToken(t);
-      const raw = localStorage.getItem("auth.user");
-      if (raw) {
-        try { setUser(JSON.parse(raw)); } catch {}
+      try {
+        const raw = localStorage.getItem("auth.user");
+        if (raw) {
+          const parsed = JSON.parse(raw) as User;
+          setUser(parsed);
+        }
+      } catch {
+        localStorage.removeItem("auth.user");
       }
     }
   }, []);
 
   const login: AuthContextType["login"] = async ({ username, password, remember = false }) => {
     try {
-      const { data } = await api.post("/api/Auth/login", { username, password });
+      const { data } = await api.post<LoginResponse>("/api/Auth/login", { username, password });
 
       const token = data?.token;
-      const roles = (data?.roles ?? []) as Role[];
+      const rawRoles = data?.roles ?? [];
 
       if (!token) throw new Error("Token no recibido");
-      if (!Array.isArray(roles) || roles.length === 0)
+      if (!Array.isArray(rawRoles) || rawRoles.length === 0)
         throw new Error("El usuario no tiene roles asignados.");
+
+      // Filtrar a los roles que conoce el frontend
+      const validRoles: Role[] = rawRoles.filter((r): r is Role =>
+        ["Administrador", "Guarda", "Residente"].includes(r)
+      );
+
+      if (validRoles.length === 0)
+        throw new Error("El usuario no tiene roles válidos para esta aplicación.");
 
       // Guardar token y header
       storage.set(token, !!remember);
       api.defaults.headers.common.Authorization = `Bearer ${token}`;
 
+      // Decodificar JWT para sacar id / email reales
+      let userId = "";
+      let emailFromToken = "";
+
+      try {
+        const payload = jwtDecode<JwtPayload>(token);
+        userId = payload.id || payload.sub || payload.userId || payload.uid || "";
+        emailFromToken = payload.email ?? "";
+      } catch {
+        // Si falla el decode, usamos los datos del response
+      }
+
+      const email = emailFromToken || data.username || username;
+
       const u: User = {
-        id: "0", // no lo envías aún, lo puedes añadir después
-        email: data.username ?? username,
-        nombre: data.username ?? username,
-        roles,
-        role: roles[0],
+        id: userId || "0",
+        email,
+        nombre: email, // luego lo puedes cambiar por nombre real si lo devuelves en el backend
+        roles: validRoles,
+        role: validRoles[0],
       };
 
       localStorage.setItem("auth.user", JSON.stringify(u));
@@ -87,8 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user,
       token,
       isAuthenticated: !!token,
-      hasRole: (r) => {
-        const role = (typeof r === "string" ? r : r).toString();
+      hasRole: (role) => {
         const roles = user?.roles ?? (user?.role ? [user.role] : []);
         return roles.includes(role as Role);
       },
