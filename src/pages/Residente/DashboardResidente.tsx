@@ -12,7 +12,7 @@ const DashboardResidente: React.FC = () => {
         <p>Bienvenido, desde aquí puedes consultar tu correspondencia y visitantes.</p>
 
         <div className="actions">
-          <button onClick={() => nav("/residente/correspondencia")} className="btn-primary">
+          <button onClick={() => nav("/residente/mis-correspondencias")} className="btn-primary">
             📦 Mi correspondencia
           </button>
           <button onClick={() => nav("/residente/autorizados")} className="btn-secondary">
