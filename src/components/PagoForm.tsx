@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import '../styles/PagoForm.css';
+import { pagoService } from '../services/pagoService'; // Importa el servicio real
 
 interface PagoFormProps {
+  idCargoCuenta: string; // Agregado: ID del cargo a pagar
   monto: number;
   concepto: string;
   periodo: string;
@@ -10,6 +12,7 @@ interface PagoFormProps {
 }
 
 const PagoForm: React.FC<PagoFormProps> = ({ 
+  idCargoCuenta, // Nuevo prop
   monto = 150000, 
   concepto = "Administración", 
   periodo = "2025-01",
@@ -85,13 +88,12 @@ const PagoForm: React.FC<PagoFormProps> = ({
     setProcesando(true);
     
     try {
-      // Simular procesamiento
+      // Simular procesamiento de tarjeta (como antes)
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // 90% de éxito para que sea más real
-      const exito = Math.random() > 0.1;
+      const exito = Math.random() > 0.1; // 90% éxito
       
-      const transaccion = {
+      const transaccionSimulada = {
         id: `tx_${Date.now()}`,
         exito,
         banco: ['Bancolombia', 'Davivienda', 'BBVA'][Math.floor(Math.random() * 3)],
@@ -100,11 +102,24 @@ const PagoForm: React.FC<PagoFormProps> = ({
         fecha: new Date().toISOString()
       };
       
-      setResultado(transaccion);
+      setResultado(transaccionSimulada);
 
       if (exito) {
+        // **NUEVO: Registrar el pago en la BD después del éxito**
+        try {
+          await pagoService.registrarPago({
+            idCargoCuenta: idCargoCuenta, // Usa el ID del cargo
+            valor: monto
+          });
+          console.log('✅ Pago registrado en la BD');
+        } catch (apiError) {
+          console.error('❌ Error registrando pago en BD:', apiError);
+          // Opcional: Mostrar error al usuario, pero no bloquear el flujo
+          alert('Pago simulado exitoso, pero error al registrar en BD. Contacta soporte.');
+        }
+
         setTimeout(() => {
-          onPagoExitoso();
+          onPagoExitoso(); // Llama al callback de éxito
         }, 3000);
       }
       
@@ -118,6 +133,7 @@ const PagoForm: React.FC<PagoFormProps> = ({
     }
   };
 
+  // El resto del código (render) permanece igual...
   if (procesando) {
     return (
       <div className="pago-form-container">

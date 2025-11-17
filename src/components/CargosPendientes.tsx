@@ -1,50 +1,150 @@
-// components/CargosPendientes.tsx
-import React, { useState, useEffect } from 'react';
-import { cargoService } from '../services/cargoService';
+import React, { useEffect, useState } from 'react';
+import { pagoService } from '../services/pagoService'; // Ajusta la ruta si es necesario
+import PagoForm from './PagoForm'; // Importa el PagoForm (desde components)
+
+interface Cargo {
+  idCargoCuenta: string;
+  unidad: string;
+  periodo: string;
+  concepto: string;
+  valor: number;
+}
 
 const CargosPendientes: React.FC = () => {
-  const [cargos, setCargos] = useState<any[]>([]);
+  const [cargos, setCargos] = useState<Cargo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showPagoForm, setShowPagoForm] = useState(false); // Nuevo estado para mostrar el formulario
+  const [selectedCargo, setSelectedCargo] = useState<Cargo | null>(null); // Cargo seleccionado
 
   useEffect(() => {
-    cargarCargos();
+    fetchCargos();
   }, []);
 
-  const cargarCargos = async () => {
+  const fetchCargos = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const cargosData = await cargoService.getCargosPendientes('tu-id-usuario');
-      setCargos(cargosData);
-    } catch (error) {
-      console.error('Error cargando cargos:', error);
+      const data = await pagoService.getCargosPendientes();
+      setCargos(data);
+    } catch (err) {
+      setError('Error al cargar cargos. Intenta refrescar.');
+      console.error('Error al cargar cargos:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <div>Cargando...</div>;
+  const handlePagar = (cargo: Cargo) => {
+    setSelectedCargo(cargo); // Selecciona el cargo
+    setShowPagoForm(true); // Muestra el formulario de pago
+  };
 
+  const handlePagoExitoso = () => {
+    // Pago exitoso: oculta el formulario, refresca la lista y muestra mensaje
+    setShowPagoForm(false);
+    setSelectedCargo(null);
+    fetchCargos(); // Refresca los cargos (el pagado debería desaparecer o actualizarse)
+    alert('¡Pago realizado exitosamente! 🎉'); // O usa un toast si tienes
+  };
+
+  const handleCancelarPago = () => {
+    // Cancela: oculta el formulario
+    setShowPagoForm(false);
+    setSelectedCargo(null);
+  };
+
+  const totalPendiente = cargos.reduce((sum, cargo) => sum + cargo.valor, 0);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <span className="ml-2 text-gray-600">Cargando cargos pendientes...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Mis Cargos Pendientes</h2>
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+        <button
+          onClick={fetchCargos}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Refrescar
+        </button>
+      </div>
+    );
+  }
+
+  // Si se muestra el formulario de pago, renderízalo
+  if (showPagoForm && selectedCargo) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto bg-gray-50 min-h-screen">
+        <div className="mb-4">
+          <button
+            onClick={handleCancelarPago}
+            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          >
+            ← Volver a Cargos
+          </button>
+        </div>
+        <PagoForm
+          idCargoCuenta={selectedCargo.idCargoCuenta} // ← AGREGADO: Pasa el ID del cargo
+          monto={selectedCargo.valor}
+          concepto={selectedCargo.concepto}
+          periodo={selectedCargo.periodo}
+          onPagoExitoso={handlePagoExitoso}
+          onCancelar={handleCancelarPago}
+        />
+      </div>
+    );
+  }
+
+  // Vista normal: lista de cargos
   return (
-    <div className="cargos-pendientes">
-      <h2>📋 Cargos Pendientes</h2>
+    <div className="p-6 max-w-4xl mx-auto bg-gray-50 min-h-screen">
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Mis Cargos Pendientes</h2>
       
       {cargos.length === 0 ? (
-        <p>No tienes cargos pendientes</p>
-      ) : (
-        cargos.map((cargo) => (
-          <div key={cargo.IdCargoCuenta} className="cargo-item">
-            <div className="cargo-info">
-              <h4>{cargo.Concepto}</h4>
-              <p>Periodo: {cargo.Periodo}</p>
-              <p className="monto">${cargo.Valor} COP</p>
-            </div>
-            <button 
-              className="btn-pagar"
-              onClick={() => {/* Aquí va el pago */}}
-            >
-              Pagar
-            </button>
+        <div className="text-center py-10">
+          <p className="text-gray-600 text-lg">¡Felicidades! No tienes cargos pendientes.</p>
+          <div className="mt-4">
+            <span className="text-4xl">🎉</span>
           </div>
-        ))
+        </div>
+      ) : (
+        <>
+          <div className="mb-6 p-4 bg-white rounded-lg shadow-md">
+            <h3 className="text-xl font-semibold text-gray-700">Resumen</h3>
+            <p className="text-gray-600">Total pendiente: <span className="font-bold text-red-600">${totalPendiente.toFixed(2)}</span></p>
+          </div>
+          
+          <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+            {cargos.map((cargo) => (
+              <div key={cargo.idCargoCuenta} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+                <div className="mb-4">
+                  <p className="text-sm text-gray-500">Unidad: <span className="font-medium">{cargo.unidad}</span></p>
+                  <p className="text-sm text-gray-500">Período: <span className="font-medium">{cargo.periodo}</span></p>
+                  <p className="text-sm text-gray-500">Concepto: <span className="font-medium">{cargo.concepto}</span></p>
+                  <p className="text-lg font-bold text-blue-600 mt-2">Valor: ${cargo.valor.toFixed(2)}</p>
+                </div>
+                <button
+                  onClick={() => handlePagar(cargo)}
+                  className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
+                  aria-label={`Pagar cargo de ${cargo.concepto}`}
+                >
+                  Pagar Ahora
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
