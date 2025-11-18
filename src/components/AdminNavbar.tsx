@@ -37,10 +37,6 @@ const AdminNavbar: React.FC = () => {
             Dashboard
           </Link>
           
-          <Link to="/admin/correspondencia" className={isActive('correspondencia')}>
-            <span className="nav-icon">📬</span>
-            Correspondencia
-          </Link>
           
           <Link to="/admin/residente" className={isActive('residentes')}>
             <span className="nav-icon">👥</span>

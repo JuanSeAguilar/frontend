@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { pagoService } from '../services/pagoService'; // Ajusta la ruta si es necesario
-import PagoForm from './PagoForm'; // Importa el PagoForm (desde components)
+import { pagoService } from '../services/pagoService';
+import PagoForm from '../components/PagoForm';
 
 interface Cargo {
   idCargoCuenta: string;
@@ -14,8 +14,8 @@ const CargosPendientes: React.FC = () => {
   const [cargos, setCargos] = useState<Cargo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showPagoForm, setShowPagoForm] = useState(false); // Nuevo estado para mostrar el formulario
-  const [selectedCargo, setSelectedCargo] = useState<Cargo | null>(null); // Cargo seleccionado
+
+  const [selectedCargo, setSelectedCargo] = useState<Cargo | null>(null);
 
   useEffect(() => {
     fetchCargos();
@@ -35,25 +35,36 @@ const CargosPendientes: React.FC = () => {
     }
   };
 
-  const handlePagar = (cargo: Cargo) => {
-    setSelectedCargo(cargo); // Selecciona el cargo
-    setShowPagoForm(true); // Muestra el formulario de pago
-  };
+  // 🔥 SI HAY CARGO SELECCIONADO → MOSTRAR SOLO EL PAGO FORM
+  if (selectedCargo) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-3xl mx-auto">
 
-  const handlePagoExitoso = () => {
-    // Pago exitoso: oculta el formulario, refresca la lista y muestra mensaje
-    setShowPagoForm(false);
-    setSelectedCargo(null);
-    fetchCargos(); // Refresca los cargos (el pagado debería desaparecer o actualizarse)
-    alert('¡Pago realizado exitosamente! 🎉'); // O usa un toast si tienes
-  };
+          <button
+            onClick={() => setSelectedCargo(null)}
+            className="mb-4 bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
+          >
+            ⬅ Volver
+          </button>
 
-  const handleCancelarPago = () => {
-    // Cancela: oculta el formulario
-    setShowPagoForm(false);
-    setSelectedCargo(null);
-  };
+          <PagoForm
+            idCargoCuenta={selectedCargo.idCargoCuenta}
+            monto={selectedCargo.valor}
+            concepto={selectedCargo.concepto}
+            periodo={selectedCargo.periodo}
+            onPagoExitoso={() => {
+              setSelectedCargo(null);
+              fetchCargos(); // Recargar cargos después del pago
+            }}
+            onCancelar={() => setSelectedCargo(null)}
+          />
+        </div>
+      </div>
+    );
+  }
 
+  // 🔥 SI NO HAY CARGO SELECCIONADO → MOSTRAR LISTA NORMAL
   const totalPendiente = cargos.reduce((sum, cargo) => sum + cargo.valor, 0);
 
   if (loading) {
@@ -82,31 +93,6 @@ const CargosPendientes: React.FC = () => {
     );
   }
 
-  // Si se muestra el formulario de pago, renderízalo
-  if (showPagoForm && selectedCargo) {
-    return (
-      <div className="p-6 max-w-4xl mx-auto bg-gray-50 min-h-screen">
-        <div className="mb-4">
-          <button
-            onClick={handleCancelarPago}
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-          >
-            ← Volver a Cargos
-          </button>
-        </div>
-        <PagoForm
-          idCargoCuenta={selectedCargo.idCargoCuenta} // ← AGREGADO: Pasa el ID del cargo
-          monto={selectedCargo.valor}
-          concepto={selectedCargo.concepto}
-          periodo={selectedCargo.periodo}
-          onPagoExitoso={handlePagoExitoso}
-          onCancelar={handleCancelarPago}
-        />
-      </div>
-    );
-  }
-
-  // Vista normal: lista de cargos
   return (
     <div className="p-6 max-w-4xl mx-auto bg-gray-50 min-h-screen">
       <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Mis Cargos Pendientes</h2>
@@ -122,7 +108,9 @@ const CargosPendientes: React.FC = () => {
         <>
           <div className="mb-6 p-4 bg-white rounded-lg shadow-md">
             <h3 className="text-xl font-semibold text-gray-700">Resumen</h3>
-            <p className="text-gray-600">Total pendiente: <span className="font-bold text-red-600">${totalPendiente.toFixed(2)}</span></p>
+            <p className="text-gray-600">
+              Total pendiente: <span className="font-bold text-red-600">${totalPendiente.toFixed(2)}</span>
+            </p>
           </div>
           
           <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
@@ -134,10 +122,10 @@ const CargosPendientes: React.FC = () => {
                   <p className="text-sm text-gray-500">Concepto: <span className="font-medium">{cargo.concepto}</span></p>
                   <p className="text-lg font-bold text-blue-600 mt-2">Valor: ${cargo.valor.toFixed(2)}</p>
                 </div>
+
                 <button
-                  onClick={() => handlePagar(cargo)}
+                  onClick={() => setSelectedCargo(cargo)}
                   className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
-                  aria-label={`Pagar cargo de ${cargo.concepto}`}
                 >
                   Pagar Ahora
                 </button>

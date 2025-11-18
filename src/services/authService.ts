@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // CAMBIAR: 5070 → 5170
-const API_BASE_URL = 'http://localhost:5170/api'; // ← PUERTO CORRECTO
+const API_BASE_URL = 'http://localhost:7049/api'; // ← PUERTO CORRECTO
 
 export interface LoginData {
   email: string;  // Asegúrate que sea 'correo' no 'email'

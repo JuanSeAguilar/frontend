@@ -16,7 +16,6 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import Reportes from "./pages/admin/Reportes";
 import Unidades from "./pages/admin/Unidades";
 import Residente from "./pages/admin/Residente";
-import CorrespondenciaList from "./pages/admin/correspondencia/CorrespondenciaList";
 import CorrespondenciaForm from "./pages/admin/correspondencia/CorrespondenciaForm";
 import RegistroUsuario from "./pages/RegistroUsuario";
 import RegistroResidente from "./pages/RegistroResidente";
@@ -37,7 +36,7 @@ import ValidarAutorizado from "./pages/Guarda/ValidarAutorizado";
 import DashboardResidente from "./pages/Residente/DashboardResidente";
 import AutorizadosList from "./pages/Residente/AutorizadosList";
 import MisCorrespondencias from "./pages/Residente/MisCorrespondencias";
-import PagoPage from './pages/PagoPages';
+
 
 
 
@@ -61,7 +60,6 @@ const App: React.FC = () => {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="correspondencia" >
-              <Route index element={<CorrespondenciaList />} />
               <Route path="nuevo" element={<CorrespondenciaForm />} />
               <Route path="editar/:id" element={<CorrespondenciaForm />} />
             </Route>
@@ -107,7 +105,7 @@ const App: React.FC = () => {
             <Route path="dashboard" element={<DashboardResidente />} />
             <Route path="autorizados" element={<AutorizadosList />} />
             <Route path="mis-correspondencias" element={<MisCorrespondencias />} />
-            <Route path="pagos" element={<PagoPage />} /> 
+            
           </Route>
 
           {/* Default */}
