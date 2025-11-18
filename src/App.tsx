@@ -16,7 +16,6 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import Reportes from "./pages/admin/Reportes";
 import Unidades from "./pages/admin/Unidades";
 import Residente from "./pages/admin/Residente";
-import CorrespondenciaList from "./pages/admin/correspondencia/CorrespondenciaList";
 import CorrespondenciaForm from "./pages/admin/correspondencia/CorrespondenciaForm";
 import RegistroUsuario from "./pages/RegistroUsuario";
 import RegistroResidente from "./pages/RegistroResidente";
@@ -61,7 +60,6 @@ const App: React.FC = () => {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="correspondencia" >
-              <Route index element={<CorrespondenciaList />} />
               <Route path="nuevo" element={<CorrespondenciaForm />} />
               <Route path="editar/:id" element={<CorrespondenciaForm />} />
             </Route>
