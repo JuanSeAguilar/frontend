@@ -1,194 +1,236 @@
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const GuardaNavbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
-  const isActive = (path: string) => {
-    return location.pathname.includes(path) ? 'nav-item active' : 'nav-item';
-  };
+  const isActive = (path: string) =>
+    location.pathname.toLowerCase().includes(path.toLowerCase())
+      ? "gnb-item--active"
+      : "";
 
   const handleLogout = () => {
-    navigate('/login');
+    logout();
+    navigate("/login");
   };
 
   return (
     <nav className="guarda-navbar">
-      <div className="navbar-container">
-        {/* Logo y marca */}
-        <div className="navbar-brand">
-          <div className="logo">
+      <div className="gnb-inner">
+        {/* Brand */}
+        <div className="gnb-brand">
+          <div className="gnb-logo">
             <span>🛡️</span>
           </div>
-          <div className="brand-text">
+          <div className="gnb-brand-text">
             <h2>ViviGest</h2>
-            <span className="role-badge">Guarda de Seguridad</span>
+            <span className="gnb-role">Guarda de seguridad</span>
           </div>
         </div>
 
-        {/* Items de navegación - Más simples para guarda */}
-        <div className="nav-items">
-          <Link to="/guarda/dashboard" className={isActive('dashboard')}>
-            <span className="nav-icon">📊</span>
-            Inicio
+        {/* Links */}
+        <div className="gnb-links">
+          <Link
+            to="/Guarda/DashboardGuarda"
+            className={`gnb-item ${isActive("dashboardguarda")}`}
+          >
+            <span className="gnb-icon">📊</span>
+            <span>Inicio</span>
           </Link>
-          
-          <Link to="/guarda/correspondencia" className={isActive('correspondencia')}>
-            <span className="nav-icon">📬</span>
-            Correspondencia
+
+          <Link
+            to="/Guarda/correspondencia-pendiente"
+            className={`gnb-item ${isActive("correspondencia-pendiente")}`}
+          >
+            <span className="gnb-icon">📬</span>
+            <span>Correspondencia</span>
           </Link>
-          
-          <Link to="/guarda/correspondencia/registrar" className={isActive('registrar')}>
-            <span className="nav-icon">➕</span>
-            Nueva
+
+          <Link
+            to="/Guarda/registro-correspondencia"
+            className={`gnb-item ${isActive("registro-correspondencia")}`}
+          >
+            <span className="gnb-icon">➕</span>
+            <span>Nueva</span>
           </Link>
-          
-          <Link to="/guarda/visitantes" className={isActive('visitantes')}>
-            <span className="nav-icon">👤</span>
-            Visitantes
+
+          <Link
+            to="/Guarda/visitas"
+            className={`gnb-item ${isActive("visitas")}`}
+          >
+            <span className="gnb-icon">👤</span>
+            <span>Visitantes</span>
           </Link>
         </div>
 
-        {/* User menu simplificado */}
-        <div className="user-menu">
-          <button onClick={handleLogout} className="logout-btn">
-            <span className="logout-icon">🚪</span>
-            Salir
+        {/* User / logout */}
+        <div className="gnb-user">
+          <button onClick={handleLogout} className="gnb-logout">
+            <span className="gnb-logout-icon">🚪</span>
+            <span>Salir</span>
           </button>
         </div>
       </div>
 
       <style>{`
         .guarda-navbar {
-          background: linear-gradient(135deg, #059669 0%, #047857 100%);
-          color: white;
-          padding: 0;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
           position: sticky;
           top: 0;
           z-index: 1000;
+          background: linear-gradient(135deg, #059669 0%, #047857 100%);
+          box-shadow: 0 4px 18px rgba(15, 23, 42, 0.35);
+          color: #ffffff;
         }
 
-        .navbar-container {
+        .gnb-inner {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 10px 18px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 0 24px;
-          max-width: 1400px;
-          margin: 0 auto;
-          height: 70px;
+          gap: 18px;
         }
 
-        .navbar-brand {
+        /* Brand */
+        .gnb-brand {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
         }
 
-        .logo {
-          background: rgba(255, 255, 255, 0.2);
-          padding: 8px;
-          border-radius: 10px;
+        .gnb-logo {
+          width: 38px;
+          height: 38px;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.16);
+          display: flex;
+          align-items: center;
+          justify-content: center;
           backdrop-filter: blur(10px);
         }
 
-        .logo span {
+        .gnb-logo span {
           font-size: 20px;
         }
 
-        .brand-text h2 {
+        .gnb-brand-text h2 {
           margin: 0;
-          font-size: 20px;
-          font-weight: bold;
-          color: white;
+          font-size: 18px;
+          font-weight: 700;
         }
 
-        .role-badge {
-          background: rgba(255, 255, 255, 0.2);
+        .gnb-role {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          margin-top: 2px;
           padding: 2px 8px;
-          border-radius: 12px;
-          font-size: 10px;
-          font-weight: 600;
+          border-radius: 999px;
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          background: rgba(4, 120, 87, 0.85);
+          border: 1px solid rgba(16, 185, 129, 0.7);
         }
 
-        .nav-items {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-        }
-
-        .nav-items a {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 16px;
-          border-radius: 10px;
-          color: white;
-          text-decoration: none;
-          font-weight: 500;
-          transition: all 0.3s ease;
-          font-size: 14px;
-        }
-
-        .nav-items a:hover {
-          background: rgba(255, 255, 255, 0.15);
-          transform: translateY(-1px);
-        }
-
-        .nav-items a.active {
-          background: rgba(255, 255, 255, 0.25);
-          backdrop-filter: blur(10px);
-        }
-
-        .nav-icon {
-          font-size: 16px;
-        }
-
-        .user-menu {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .logout-btn {
-          background: rgba(255, 255, 255, 0.2);
-          border: none;
-          color: white;
-          padding: 8px 16px;
-          border-radius: 8px;
-          cursor: pointer;
+        /* Links */
+        .gnb-links {
           display: flex;
           align-items: center;
           gap: 6px;
-          font-size: 12px;
-          font-weight: 500;
-          transition: all 0.3s ease;
         }
 
-        .logout-btn:hover {
-          background: rgba(255, 255, 255, 0.3);
+        .gnb-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 12px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 500;
+          text-decoration: none;
+          color: #ecfdf5;
+          border: 1px solid transparent;
+          background: transparent;
+          transition:
+            background 0.15s ease,
+            transform 0.1s ease,
+            box-shadow 0.15s ease,
+            border-color 0.15s ease;
+        }
+
+        .gnb-item:hover {
+          background: rgba(255, 255, 255, 0.16);
+          border-color: rgba(209, 250, 229, 0.7);
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.3);
           transform: translateY(-1px);
         }
 
-        .logout-icon {
+        .gnb-item--active {
+          background: rgba(236, 253, 245, 0.2);
+          border-color: rgba(209, 250, 229, 0.9);
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.35);
+        }
+
+        .gnb-icon {
+          font-size: 16px;
+        }
+
+        /* User */
+        .gnb-user {
+          display: flex;
+          align-items: center;
+        }
+
+        .gnb-logout {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          border-radius: 999px;
+          border: 1px solid rgba(248, 250, 252, 0.6);
+          background: rgba(248, 250, 252, 0.1);
+          padding: 6px 12px;
+          font-size: 12px;
+          color: #f9fafb;
+          cursor: pointer;
+          font-weight: 500;
+          transition:
+            background 0.15s ease,
+            transform 0.1s ease,
+            box-shadow 0.15s ease;
+        }
+
+        .gnb-logout:hover {
+          background: rgba(248, 250, 252, 0.22);
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.35);
+          transform: translateY(-1px);
+        }
+
+        .gnb-logout-icon {
           font-size: 14px;
         }
 
-        @media (max-width: 768px) {
-          .navbar-container {
-            padding: 0 16px;
+        /* Responsive */
+        @media (max-width: 900px) {
+          .gnb-inner {
             flex-wrap: wrap;
-            height: auto;
-            padding: 12px 16px;
+            padding: 10px 12px 12px;
           }
-          
-          .nav-items {
+
+          .gnb-links {
             order: 3;
             width: 100%;
             justify-content: center;
-            margin-top: 12px;
             flex-wrap: wrap;
+            margin-top: 4px;
+          }
+
+          .gnb-user {
+            margin-left: auto;
           }
         }
       `}</style>

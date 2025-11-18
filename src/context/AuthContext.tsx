@@ -1,132 +1,152 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react'; // ← Agrega esto
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import api, { storage } from "../api/axios";
+import { jwtDecode } from "jwt-decode";
 
-// ... el resto del código igual
+export type Role = "Administrador" | "Guarda" | "Residente";
 
-// Tipos para nuestro contexto
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'guarda';
+export interface User {
+  id: string;      // IdUsuario (GUID del backend)
+  email: string;   // correo
+  nombre: string;  // nombre a mostrar (por ahora uso el correo)
+  roles: Role[];
+  role?: Role;
+}
+
+export interface LoginResponse {
+  token: string;
+  username: string;
+  roles: string[];
+}
+
+interface JwtPayload {
+  id?: string;
+  sub?: string;
+  userId?: string;
+  uid?: string;
+  pid?: string;
+  email?: string;
+  [key: string]: any;
 }
 
 interface AuthContextType {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string, remember: boolean) => Promise<void>;
+  hasRole: (role: Role | string) => boolean;
+  login: (params: { username: string; password: string; remember?: boolean }) => Promise<void>;
   logout: () => void;
-  loading: boolean;
 }
 
-// Crear el contexto
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Props para el Provider
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-// Provider component
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(storage.get());
 
-  // Verificar si hay usuario en localStorage al cargar
+  // Hidratar estado desde storage
   useEffect(() => {
-    const checkAuth = () => {
+    const t = storage.get();
+    if (t) {
+      api.defaults.headers.common.Authorization = `Bearer ${t}`;
+      setToken(t);
       try {
-        const savedUser = localStorage.getItem('vivigest_user');
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
+        const raw = localStorage.getItem("auth.user");
+        if (raw) {
+          const parsed = JSON.parse(raw) as User;
+          setUser(parsed);
         }
-      } catch (error) {
-        console.error('Error loading auth data:', error);
-        localStorage.removeItem('vivigest_user');
-      } finally {
-        setLoading(false);
+      } catch {
+        localStorage.removeItem("auth.user");
       }
-    };
-
-    checkAuth();
+    }
   }, []);
 
-  // Función de login
-  const login = async (email: string, password: string, remember: boolean): Promise<void> => {
+  const login: AuthContextType["login"] = async ({ username, password, remember = false }) => {
     try {
-      setLoading(true);
-      
-      // Simulación de login - Reemplaza con tu API real
-      console.log('🔐 Attempting login:', { email, password, remember });
-      
-      // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Validación básica (demo)
-      if (email === 'admin@demo.com' && password === '123456') {
-        const userData: User = {
-          id: '1',
-          email: email,
-          name: 'Administrador',
-          role: 'admin'
-        };
-        
-        setUser(userData);
-        if (remember) {
-          localStorage.setItem('vivigest_user', JSON.stringify(userData));
-        }
-      } else if (email === 'guarda@demo.com' && password === '123456') {
-        const userData: User = {
-          id: '2',
-          email: email,
-          name: 'Guarda de Seguridad',
-          role: 'guarda'
-        };
-        
-        setUser(userData);
-        if (remember) {
-          localStorage.setItem('vivigest_user', JSON.stringify(userData));
-        }
-      } else {
-        throw new Error('Credenciales inválidas');
+      const { data } = await api.post<LoginResponse>("/api/Auth/login", { username, password });
+
+      const token = data?.token;
+      const rawRoles = data?.roles ?? [];
+
+      if (!token) throw new Error("Token no recibido");
+      if (!Array.isArray(rawRoles) || rawRoles.length === 0)
+        throw new Error("El usuario no tiene roles asignados.");
+
+      // Filtrar a los roles que conoce el frontend
+      const validRoles: Role[] = rawRoles.filter((r): r is Role =>
+        ["Administrador", "Guarda", "Residente"].includes(r)
+      );
+
+      if (validRoles.length === 0)
+        throw new Error("El usuario no tiene roles válidos para esta aplicación.");
+
+      // Guardar token y header
+      storage.set(token, !!remember);
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
+
+      // Decodificar JWT para sacar id / email reales
+      let userId = "";
+      let emailFromToken = "";
+
+      try {
+        const payload = jwtDecode<JwtPayload>(token);
+        userId = payload.id || payload.sub || payload.userId || payload.uid || "";
+        emailFromToken = payload.email ?? "";
+      } catch {
+        // Si falla el decode, usamos los datos del response
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
+
+      const email = emailFromToken || data.username || username;
+
+      const u: User = {
+        id: userId || "0",
+        email,
+        nombre: email, // luego lo puedes cambiar por nombre real si lo devuelves en el backend
+        roles: validRoles,
+        role: validRoles[0],
+      };
+
+      localStorage.setItem("auth.user", JSON.stringify(u));
+      setUser(u);
+      setToken(token);
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        e?.message ||
+        "Credenciales inválidas";
+      throw new Error(msg);
     }
   };
 
-  // Función de logout
   const logout = () => {
+    storage.clear();
+    localStorage.removeItem("auth.user");
     setUser(null);
-    localStorage.removeItem('vivigest_user');
+    setToken(null);
+    delete (api.defaults.headers.common as any).Authorization;
   };
 
-  // Valor del contexto
-  const contextValue: AuthContextType = {
-    user,
-    isAuthenticated: !!user,
-    login,
-    logout,
-    loading
-  };
-
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      token,
+      isAuthenticated: !!token,
+      hasRole: (role) => {
+        const roles = user?.roles ?? (user?.role ? [user.role] : []);
+        return roles.includes(role as Role);
+      },
+      login,
+      logout,
+    }),
+    [user, token]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Hook personalizado para usar el contexto
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
+  return ctx;
 };
-
-export default AuthContext;

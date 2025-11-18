@@ -1,44 +1,100 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { correspondenciaService } from "../../services/correspondenciaService";
+
+interface CorrespondenciaPendiente {
+  idCorrespondencia: string;
+  unidad: string;
+  torre: string;
+  tipoCorrespondencia: string;
+  remitente: string;
+  fechaRecepcion: string;
+  observacion: string;
+}
 
 const CorrespondenciaPendiente: React.FC = () => {
   const navigate = useNavigate();
+  const [correspondencias, setCorrespondencias] = useState<CorrespondenciaPendiente[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [entregadasHoy, setEntregadasHoy] = useState(0);
 
-  // Datos mock de correspondencia pendiente
-  const correspondenciasPendientes = [
-    {
-      id: '1',
-      torre: 'Torre A',
-      unidad: '101',
-      remitente: 'Servientrega',
-      tipo: 'Paquete',
-      fecha: '2024-01-15',
-      observaciones: 'Paquete mediano, frágil'
-    },
-    {
-      id: '2',
-      torre: 'Torre B', 
-      unidad: '205',
-      remitente: 'DHL',
-      tipo: 'Documento',
-      fecha: '2024-01-15',
-      observaciones: 'Sobre manila'
-    },
-    {
-      id: '3',
-      torre: 'Torre C',
-      unidad: '302',
-      remitente: 'Familiar',
-      tipo: 'Encomienda',
-      fecha: '2024-01-14',
-      observaciones: 'Caja de alimentos'
+  useEffect(() => {
+    cargarCorrespondenciasPendientes();
+    cargarEntregadasHoy();
+  }, []);
+
+  const cargarCorrespondenciasPendientes = async () => {
+    try {
+      setLoading(true);
+      const data = await correspondenciaService.getPendientes();
+
+      if (Array.isArray(data) && data.length > 0) {
+        console.log("🎯 PROPIEDADES DEL PRIMER ELEMENTO:", Object.keys(data[0]));
+        console.log("📦 DATOS COMPLETOS:", data[0]);
+        console.log("🔢 TOTAL DE ELEMENTOS:", data.length);
+      } else {
+        console.log("📭 No hay correspondencias pendientes");
+      }
+
+      setCorrespondencias(data);
+    } catch (error) {
+      console.error("Error cargando correspondencias:", error);
+      alert("Error al cargar las correspondencias pendientes");
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const handleNotificar = (id: string) => {
-    alert(`📢 Notificando correspondencia ${id} al residente`);
-    // Aquí iría la lógica real de notificación
   };
+
+  const cargarEntregadasHoy = async () => {
+    try {
+      // TODO: cuando tengas endpoint real, lo llamas acá.
+      const hoy = new Date().toISOString().split("T")[0];
+      console.log("📅 Fecha para entregadas hoy:", hoy);
+      setEntregadasHoy(3); // Temporal / mock
+    } catch (error) {
+      console.error("Error cargando entregadas:", error);
+    }
+  };
+
+  const handleNotificar = async (id: string) => {
+    try {
+      await correspondenciaService.notificar(id);
+      alert("✅ Residente notificado correctamente");
+      await cargarCorrespondenciasPendientes();
+    } catch (error) {
+      console.error("Error notificando:", error);
+      alert("Error al notificar al residente");
+    }
+  };
+
+  const formatFecha = (fechaString: string) => {
+    const fecha = new Date(fechaString);
+    if (isNaN(fecha.getTime())) return fechaString;
+    return fecha.toLocaleDateString("es-ES");
+  };
+
+  if (loading) {
+    return (
+      <div className="correspondencia-pendiente">
+        <div className="container">
+          <div className="loading">
+            <div className="spinner">⏳</div>
+            <p>Cargando correspondencias...</p>
+          </div>
+        </div>
+        <style>{`
+          .loading {
+            text-align: center;
+            padding: 60px 20px;
+          }
+          .spinner {
+            font-size: 48px;
+            margin-bottom: 16px;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="correspondencia-pendiente">
@@ -47,10 +103,10 @@ const CorrespondenciaPendiente: React.FC = () => {
         <div className="header">
           <div className="title-section">
             <h1>📬 Correspondencia Pendiente</h1>
-            <p>Gestión de correspondencia por entregar</p>
+            <p>Gestión de correspondencia por notificar / entregar</p>
           </div>
-          <button 
-            onClick={() => navigate('/guarda/correspondencia/registrar')}
+          <button
+            onClick={() => navigate("/Guarda/correspondencia/registrar")}
             className="nuevo-btn"
           >
             + Nueva Correspondencia
@@ -62,14 +118,14 @@ const CorrespondenciaPendiente: React.FC = () => {
           <div className="stat-card">
             <div className="stat-icon">📦</div>
             <div className="stat-content">
-              <h3>{correspondenciasPendientes.length}</h3>
+              <h3>{correspondencias.length}</h3>
               <p>Pendientes</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">✅</div>
             <div className="stat-content">
-              <h3>5</h3>
+              <h3>{entregadasHoy}</h3>
               <p>Entregadas Hoy</p>
             </div>
           </div>
@@ -78,8 +134,8 @@ const CorrespondenciaPendiente: React.FC = () => {
         {/* Lista de correspondencia */}
         <div className="correspondencia-list">
           <h2>📋 Correspondencia por Notificar</h2>
-          
-          {correspondenciasPendientes.length === 0 ? (
+
+          {correspondencias.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">🎉</div>
               <h3>No hay correspondencia pendiente</h3>
@@ -87,17 +143,22 @@ const CorrespondenciaPendiente: React.FC = () => {
             </div>
           ) : (
             <div className="correspondencia-grid">
-              {correspondenciasPendientes.map((item) => (
-                <div key={item.id} className="correspondencia-card">
+              {correspondencias.map((item) => (
+                <div
+                  key={item.idCorrespondencia}
+                  className="correspondencia-card"
+                >
                   <div className="card-header">
-                    <h3>🏢 {item.torre} - {item.unidad}</h3>
+                    <h3>
+                      🏢 {item.torre} - {item.unidad}
+                    </h3>
                     <span className="badge pendiente">Pendiente</span>
                   </div>
-                  
+
                   <div className="card-content">
                     <div className="info-row">
                       <span className="label">📦 Tipo:</span>
-                      <span className="value">{item.tipo}</span>
+                      <span className="value">{item.tipoCorrespondencia}</span>
                     </div>
                     <div className="info-row">
                       <span className="label">👤 Remitente:</span>
@@ -105,19 +166,21 @@ const CorrespondenciaPendiente: React.FC = () => {
                     </div>
                     <div className="info-row">
                       <span className="label">📅 Fecha:</span>
-                      <span className="value">{item.fecha}</span>
+                      <span className="value">
+                        {formatFecha(item.fechaRecepcion)}
+                      </span>
                     </div>
-                    {item.observaciones && (
+                    {item.observacion && (
                       <div className="info-row">
                         <span className="label">📝 Observaciones:</span>
-                        <span className="value">{item.observaciones}</span>
+                        <span className="value">{item.observacion}</span>
                       </div>
                     )}
                   </div>
 
                   <div className="card-actions">
-                    <button 
-                      onClick={() => handleNotificar(item.id)}
+                    <button
+                      onClick={() => handleNotificar(item.idCorrespondencia)}
                       className="btn notificar"
                     >
                       📢 Notificar Residente

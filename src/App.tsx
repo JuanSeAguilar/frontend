@@ -1,103 +1,121 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import PrivateRoute from "./utils/PrivateRoute";
-import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Layouts
 import AdminLayout from "./components/layouts/AdminLayout";
 import GuardaLayout from "./components/layouts/GuardaLayout";
+import ResidenteLayout from "./components/layouts/ResidenteLayout";
 
-// Páginas de Admin
-import Dashboard from "./pages/admin/Dashboard";
-import CorrespondenciaList from './pages/admin/correspondencia/CorrespondenciaList'; // ← Aquí está
-import CorrespondenciaForm from './pages/admin/correspondencia/CorrespondenciaForm'; // ← Aquí está
-import Residentes from "./pages/admin/Residente";
-import Unidades from "./pages/admin/Unidades";
+// Páginas públicas
+import Login from "./pages/Login";
+
+// Admin
+import AdminDashboard from "./pages/admin/Dashboard";
 import Reportes from "./pages/admin/Reportes";
+import Unidades from "./pages/admin/Unidades";
+import Residente from "./pages/admin/Residente";
+import CorrespondenciaForm from "./pages/admin/correspondencia/CorrespondenciaForm";
+import RegistroUsuario from "./pages/RegistroUsuario";
+import RegistroResidente from "./pages/RegistroResidente";
+import GenerarCargos from "./components/GenerarCargos.js";
+import DashboardPagosAdmin from './pages/admin/DashboardPagosAdmin';
 
-// Páginas de Guarda
-import DashboardGuarda from "./pages/guarda/DashboardGuarda";
-import CorrespondenciaPendiente from "./pages/guarda/CorrespondenciaPendiente";
-import RegistroCorrespondencia from "./pages/guarda/RegistroCorrespondencia";
-import ControlVisitantes from "./pages/guarda/ControlVisitantes";
 
-const App: React.FC = () => (
-  <AuthProvider>
-    <BrowserRouter>
-      <Routes>
-        {/* Ruta pública - Login */}
-        <Route path="/login" element={<Login />} />
-        
-        {/* Rutas de ADMIN */}
-        <Route 
-          path="/admin/*" 
-          element={
-            <PrivateRoute>
-              <AdminLayout />
-            </PrivateRoute>
-          }
-        >
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="correspondencia" element={<CorrespondenciaList />} />
-          <Route path="correspondencia/nueva" element={<CorrespondenciaForm />} />
-          <Route path="correspondencia/editar/:id" element={<CorrespondenciaForm />} />
-          <Route path="residentes" element={<Residentes />} />
-          <Route path="unidades" element={<Unidades />} />
-          <Route path="reportes" element={<Reportes />} />
-          <Route path="" element={<Navigate to="dashboard" replace />} />
-        </Route>
+// Guarda
+import DashboardGuarda from "./pages/Guarda/DashboardGuarda";
+import RegistroVisita from "./pages/Guarda/RegistroVisita";
+import ListaVisitas from "./pages/Guarda/ListaVisitas";
+import ControlVisitantes from "./pages/Guarda/ControlVisitantes";
+import RegistroCorrespondencia from "./pages/Guarda/RegistroCorrespondencia";
+import CorrespondenciaPendiente from "./pages/Guarda/CorrespondenciaPendiente";
+import ValidarAutorizado from "./pages/Guarda/ValidarAutorizado";
 
-        {/* Rutas de GUARDA */}
-        <Route 
-          path="/guarda/*" 
-          element={
-            <PrivateRoute>
-              <GuardaLayout />
-            </PrivateRoute>
-          }
-        >
-          <Route path="dashboard" element={<DashboardGuarda />} />
-          <Route path="correspondencia" element={<CorrespondenciaPendiente />} />
-          <Route path="correspondencia/registrar" element={<RegistroCorrespondencia />} />
-          <Route path="visitantes" element={<ControlVisitantes />} />
-          <Route path="" element={<Navigate to="dashboard" replace />} />
-        </Route>
+// Residente
+import DashboardResidente from "./pages/Residente/DashboardResidente";
+import AutorizadosList from "./pages/Residente/AutorizadosList";
+import MisCorrespondencias from "./pages/Residente/MisCorrespondencias";
 
-        {/* Rutas legacy - Redirigir a admin */}
-        <Route 
-          path="/correspondencia" 
-          element={
-            <PrivateRoute>
-              <Navigate to="/admin/correspondencia" replace />
-            </PrivateRoute>
-          } 
-        />
-        
-        <Route 
-          path="/correspondencia/nueva" 
-          element={
-            <PrivateRoute>
-              <Navigate to="/admin/correspondencia/nueva" replace />
-            </PrivateRoute>
-          } 
-        />
 
-        {/* Ruta por defecto - Redirige al admin dashboard */}
-        <Route 
-          path="/" 
-          element={
-            <PrivateRoute>
-              <Navigate to="/admin/dashboard" replace />
-            </PrivateRoute>
-          } 
-        />
-        
-        {/* Ruta por defecto para no autenticados */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
-  </AuthProvider>
-);
+
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Público */}
+          <Route path="/login" element={<Login />} />
+
+          {/* ===================== ADMIN ===================== */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role="Administrador">
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="correspondencia" >
+              <Route path="nuevo" element={<CorrespondenciaForm />} />
+              <Route path="editar/:id" element={<CorrespondenciaForm />} />
+            </Route>
+            <Route path="reportes" element={<Reportes />} />
+            <Route path="unidades" element={<Unidades />} />
+            <Route path="residente" element={<Residente />} />
+            <Route path="registro-usuario" element={<RegistroUsuario />} />
+            <Route path="registro-residente" element={<RegistroResidente />} />
+            <Route path="/admin/generar-cargos" element={<GenerarCargos />} />
+            <Route path="/admin/pagos" element={<DashboardPagosAdmin />} />
+          </Route>
+
+          {/* ===================== GUARDA ===================== */}
+          <Route
+            path="/Guarda"
+            element={
+              <ProtectedRoute role="Guarda">
+                <GuardaLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DashboardGuarda />} />
+            <Route path="DashboardGuarda" element={<DashboardGuarda />} />
+            <Route path="registro-visita" element={<RegistroVisita />} />
+            <Route path="visitas" element={<ListaVisitas />} />
+            <Route path="control-visitantes" element={<ControlVisitantes />} />
+            <Route path="registro-correspondencia" element={<RegistroCorrespondencia />} />
+            <Route path="correspondencia-pendiente" element={<CorrespondenciaPendiente />} />
+            <Route path="validar-autorizado" element={<ValidarAutorizado />} />
+          </Route>
+
+          {/* ===================== RESIDENTE ===================== */}
+          
+          <Route
+            path="/residente"
+            element={ 
+              <ProtectedRoute role="Residente">
+                <ResidenteLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DashboardResidente />} />
+            <Route path="dashboard" element={<DashboardResidente />} />
+            <Route path="autorizados" element={<AutorizadosList />} />
+            <Route path="mis-correspondencias" element={<MisCorrespondencias />} />
+            
+          </Route>
+
+          {/* Default */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+          
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+};
 
 export default App;

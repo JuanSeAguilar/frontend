@@ -73,5 +73,5 @@ const Residentes: React.FC = () => {
   );
 };
 
-// ¡AGREGA ESTA LÍNEA!
+
 export default Residentes;
