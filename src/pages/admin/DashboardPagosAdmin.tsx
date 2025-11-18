@@ -1,65 +1,139 @@
-import React, { useEffect, useState } from 'react';
-import { pagoService } from '../../services/pagoService'; // Cambia '../services/pagoService' por '../../services/pagoService'
-
+import React, { useEffect, useMemo, useState } from 'react';
+import styles from '../../styles/DashboardPagosAdmin.module.css';
+import { pagoService } from '../../services/pagoService';
 
 interface Pago {
   idPago: string;
-  residente: string;
-  unidad: string;
-  periodo: string;
+  residente?: string;
+  unidad?: string;
+  periodo?: string;
   valor: number;
-  metodo: string;
+  metodoPago?: string;
   fechaPago: string;
 }
+
+const currency = new Intl.NumberFormat(undefined, {
+  style: 'currency',
+  currency: 'COP', // Ajusta a tu moneda: 'COP', 'EUR', etc.
+  minimumFractionDigits: 0,
+});
 
 const DashboardPagosAdmin: React.FC = () => {
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    let mounted = true;
     const fetchPagos = async () => {
       try {
+        setLoading(true);
         const data = await pagoService.getPagos();
-        setPagos(data);
+        if (!mounted) return;
+        setPagos(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error al cargar pagos:', error);
+        if (mounted) setPagos([]);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
     fetchPagos();
-  }, []);
+    return () => {
+      mounted = false;
+    };
+  }, [refreshKey]);
 
-  if (loading) return <div>Cargando pagos...</div>;
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return pagos;
+    return pagos.filter((p) =>
+      [p.residente, p.unidad, p.periodo, p.metodoPago]
+        .filter(Boolean)
+        .some((val) => (val as string).toLowerCase().includes(q))
+    );
+  }, [pagos, query]);
+
+  const totalValor = useMemo(
+    () => filtered.reduce((s, p) => s + (Number(p.valor) || 0), 0),
+    [filtered]
+  );
+
+  const onRefresh = () => setRefreshKey((k) => k + 1);
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Dashboard de Pagos - Administrador</h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f0f0f0' }}>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Residente</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Unidad</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Período</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Valor</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Método</th>
-            <th style={{ border: '1px solid #ccc', padding: '8px' }}>Fecha de Pago</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pagos.map((pago) => (
-            <tr key={pago.idPago}>
-              <td style={{ border: '1px solid #ccc', padding: '8px' }}>{pago.residente}</td>
-              <td style={{ border: '1px solid #ccc', padding: '8px' }}>{pago.unidad}</td>
-              <td style={{ border: '1px solid #ccc', padding: '8px' }}>{pago.periodo}</td>
-              <td style={{ border: '1px solid #ccc', padding: '8px' }}>${pago.valor}</td>
-              <td style={{ border: '1px solid #ccc', padding: '8px' }}>{pago.metodo}</td>
-              <td style={{ border: '1px solid #ccc', padding: '8px' }}>{new Date(pago.fechaPago).toLocaleDateString()}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {pagos.length === 0 && <p>No hay pagos registrados aún.</p>}
+    <div className={styles.wrapper}>
+      <div className={styles.header}>
+        <div>
+          <h2 className={styles.title}>Dashboard de Pagos</h2>
+          <p className={styles.subtitle}>
+            Pagos registrados ({pagos.length}) — Mostrando {filtered.length}
+          </p>
+        </div>
+
+        <div className={styles.controls}>
+          <div className={styles.searchWrapper}>
+            <input
+              className={styles.search}
+              placeholder="Buscar por residente, unidad o periodo..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              aria-label="Buscar pagos"
+            />
+          </div>
+          <button className={styles.button} onClick={onRefresh} title="Refrescar">
+            ↻ Refrescar
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.card}>
+        {loading ? (
+          <div className={styles.loading}>
+            <div className={styles.spinner} />
+            <span>Cargando pagos...</span>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className={styles.empty}>
+            <p>No hay pagos que coincidan con la búsqueda.</p>
+          </div>
+        ) : (
+          <>
+            <div className={styles.summary}>
+              <div>Total visible:</div>
+              <div className={styles.totalValue}>{currency.format(totalValor)}</div>
+            </div>
+
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Residente</th>
+                    <th>Unidad</th>
+                    <th>Período</th>
+                    <th>Valor</th>
+                    <th>Método</th>
+                    <th>Fecha de pago</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((p) => (
+                    <tr key={p.idPago}>
+                      <td className={styles.residente}>{p.residente ?? '—'}</td>
+                      <td>{p.unidad ?? '—'}</td>
+                      <td>{p.periodo ?? '—'}</td>
+                      <td className={styles.valor}>{currency.format(p.valor)}</td>
+                      <td>{p.metodoPago ?? '—'}</td>
+                      <td>{new Date(p.fechaPago).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };

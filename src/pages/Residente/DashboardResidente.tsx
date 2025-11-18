@@ -1,89 +1,140 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import CargosPendientes from '../../components/CargosPendientes';
+import CargosPendientes from "../../components/CargosPendientes";
 
 const DashboardResidente: React.FC = () => {
   const nav = useNavigate();
 
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-wrapper">
       <div className="dashboard-card">
-        <h1>Panel del Residente 🏠</h1>
-        <p>Bienvenido, desde aquí puedes consultar tu correspondencia y visitantes.</p>
+        <h1 className="title">🏠 Panel del Residente</h1>
+        <p className="subtitle">
+          Bienvenido, aquí puedes gestionar tu información personal, tus
+          correspondencias y pagos.
+        </p>
 
-        <div className="actions">
-          <button onClick={() => nav("/residente/mis-correspondencias")} className="btn-primary">
-            📦 Mi correspondencia
+        {/* Botones principales */}
+        <div className="main-actions">
+          <button
+            onClick={() => nav("/residente/mis-correspondencias")}
+            className="action-btn primary"
+          >
+            📦 Ver mi correspondencia
           </button>
-          <button onClick={() => nav("/residente/autorizados")} className="btn-secondary">
+
+          <button
+            onClick={() => nav("/residente/autorizados")}
+            className="action-btn secondary"
+          >
             👥 Visitantes autorizados
           </button>
+
+          
         </div>
       </div>
 
-  
-<button onClick={() => nav('/pago')} className="btn-primary">
-  💳 Pagar servicios
-</button>
+      {/* Sección de cargos pendientes */}
+      <div className="section-card">
+        <h2 className="section-title">💰 Cargos Pendientes</h2>
+        <p className="section-text">
+          Consulta tus cuotas y obligaciones pendientes del conjunto.
+        </p>
+        <CargosPendientes />
+      </div>
 
-<CargosPendientes />
-
-
+      {/* ESTILOS */}
       <style>{`
-        .dashboard-container {
+        .dashboard-wrapper {
           min-height: 100vh;
+          padding: 40px 20px;
+          background: linear-gradient(135deg, #eef2ff, #dbeafe);
           display: flex;
-          justify-content: center;
+          flex-direction: column;
           align-items: center;
-          background: linear-gradient(135deg, #f8fafc, #e0f2fe);
-          padding: 20px;
+          gap: 30px;
         }
+
         .dashboard-card {
           background: white;
-          padding: 40px;
-          border-radius: 16px;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-          text-align: center;
-          max-width: 500px;
+          padding: 36px;
+          border-radius: 20px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+          max-width: 600px;
           width: 100%;
+          text-align: center;
         }
-        h1 {
+
+        .title {
+          font-size: 2rem;
+          font-weight: 800;
           color: #1e3a8a;
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
-        p {
+
+        .subtitle {
+          font-size: 1rem;
           color: #475569;
-          margin-bottom: 32px;
+          margin-bottom: 30px;
         }
-        .actions {
+
+        .main-actions {
           display: flex;
           flex-direction: column;
           gap: 16px;
         }
-        .btn-primary, .btn-secondary {
-          padding: 12px;
-          border: none;
-          border-radius: 8px;
+
+        .action-btn {
+          padding: 14px;
+          border-radius: 12px;
+          font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          font-size: 16px;
-          transition: all 0.3s ease;
+          border: none;
+          transition: all .25s ease-in-out;
         }
-        .btn-primary {
+
+        .primary {
           background: linear-gradient(135deg, #3b82f6, #6366f1);
           color: white;
         }
-        .btn-secondary {
-          background: white;
+
+        .primary:hover {
+          box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+          transform: translateY(-2px);
+        }
+
+        .secondary {
+          background: #ffffff;
           border: 2px solid #3b82f6;
           color: #1e3a8a;
         }
-        .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(59,130,246,0.3);
-        }
-        .btn-secondary:hover {
+
+        .secondary:hover {
           background: #f0f9ff;
+          transform: translateY(-2px);
+        }
+
+        .section-card {
+          background: white;
+          padding: 25px;
+          border-radius: 16px;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+          max-width: 700px;
+          width: 100%;
+        }
+
+        .section-title {
+          font-size: 1.4rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin-bottom: 6px;
+        }
+
+        .section-text {
+          font-size: 0.95rem;
+          color: #475569;
+          margin-bottom: 18px;
         }
       `}</style>
     </div>

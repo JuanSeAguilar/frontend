@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import '../styles/PagoForm.css';
-import { pagoService } from '../services/pagoService'; // Importa el servicio real
+import { pagoService } from '../services/pagoService';
 
 interface PagoFormProps {
-  idCargoCuenta: string; // Agregado: ID del cargo a pagar
+  idCargoCuenta: string;
   monto: number;
   concepto: string;
   periodo: string;
@@ -12,39 +12,40 @@ interface PagoFormProps {
 }
 
 const PagoForm: React.FC<PagoFormProps> = ({ 
-  idCargoCuenta, // Nuevo prop
-  monto = 150000, 
-  concepto = "Administración", 
-  periodo = "2025-01",
+  idCargoCuenta,
+  monto, 
+  concepto, 
+  periodo,
   onPagoExitoso, 
   onCancelar 
 }) => {
+  
   const [datosPago, setDatosPago] = useState({
     numeroTarjeta: '',
     fechaExpiracion: '',
     cvc: '',
     nombreTitular: '',
   });
-  
+
   const [procesando, setProcesando] = useState(false);
   const [resultado, setResultado] = useState<any>(null);
   const [errores, setErrores] = useState<Record<string, string>>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     let valorFormateado = value;
-    
+
     if (name === 'numeroTarjeta') {
       valorFormateado = value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim();
       if (valorFormateado.length > 19) valorFormateado = valorFormateado.slice(0, 19);
     }
-    
+
     if (name === 'fechaExpiracion') {
       valorFormateado = value.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2');
       if (valorFormateado.length > 5) valorFormateado = valorFormateado.slice(0, 5);
     }
-    
+
     if (name === 'cvc') {
       valorFormateado = value.replace(/\D/g, '').slice(0, 4);
     }
@@ -86,54 +87,50 @@ const PagoForm: React.FC<PagoFormProps> = ({
     if (!validarFormulario()) return;
 
     setProcesando(true);
-    
+
     try {
-      // Simular procesamiento de tarjeta (como antes)
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      const exito = Math.random() > 0.1; // 90% éxito
-      
-      const transaccionSimulada = {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const exito = true; // simulamos 100% éxito real
+      const transaccion = {
         id: `tx_${Date.now()}`,
         exito,
-        banco: ['Bancolombia', 'Davivienda', 'BBVA'][Math.floor(Math.random() * 3)],
-        codigoAutorizacion: exito ? `AUTH${Math.random().toString(36).substr(2, 8).toUpperCase()}` : undefined,
-        mensajeError: exito ? undefined : 'Fondos insuficientes',
+        banco: 'Bancolombia',
+        codigoAutorizacion: `AUTH${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
         fecha: new Date().toISOString()
       };
-      
-      setResultado(transaccionSimulada);
+
+      setResultado(transaccion);
 
       if (exito) {
-        // **NUEVO: Registrar el pago en la BD después del éxito**
         try {
           await pagoService.registrarPago({
-            idCargoCuenta: idCargoCuenta, // Usa el ID del cargo
+            idCargoCuenta,
             valor: monto
           });
-          console.log('✅ Pago registrado en la BD');
-        } catch (apiError) {
-          console.error('❌ Error registrando pago en BD:', apiError);
-          // Opcional: Mostrar error al usuario, pero no bloquear el flujo
-          alert('Pago simulado exitoso, pero error al registrar en BD. Contacta soporte.');
+
+          console.log("Pago registrado en BD correctamente ✔");
+        } catch (apiError: any) {
+          console.error("❌ Error registrando pago:", apiError);
+
+          alert("El pago fue exitoso, pero hubo un error registrándolo en la BD.");
         }
 
         setTimeout(() => {
-          onPagoExitoso(); // Llama al callback de éxito
-        }, 3000);
+          onPagoExitoso();
+        }, 2500);
       }
-      
-    } catch (error) {
+
+    } catch (err) {
       setResultado({
         exito: false,
-        mensajeError: 'Error en el procesamiento'
+        mensajeError: 'Error inesperado procesando el pago'
       });
     } finally {
       setProcesando(false);
     }
   };
 
-  // El resto del código (render) permanece igual...
   if (procesando) {
     return (
       <div className="pago-form-container">
@@ -153,46 +150,28 @@ const PagoForm: React.FC<PagoFormProps> = ({
           <div className="icono-resultado">
             {resultado.exito ? '✅' : '❌'}
           </div>
-          
-          <h3>{resultado.exito ? '¡Pago Exitoso!' : 'Error en el Pago'}</h3>
-          
+
+          <h3>{resultado.exito ? '¡Pago Exitoso!' : 'Pago Fallido'}</h3>
+
           {resultado.exito ? (
             <>
               <p>Tu pago ha sido procesado correctamente</p>
-              
+
               <div className="detalles-transaccion">
-                <div className="detalle">
-                  <span>Concepto:</span>
-                  <span>{concepto}</span>
-                </div>
-                <div className="detalle">
-                  <span>Periodo:</span>
-                  <span>{periodo}</span>
-                </div>
-                <div className="detalle">
-                  <span>Monto:</span>
-                  <span>${monto} COP</span>
-                </div>
-                <div className="detalle">
-                  <span>Banco:</span>
-                  <span>{resultado.banco}</span>
-                </div>
-                <div className="detalle">
-                  <span>Autorización:</span>
-                  <span>{resultado.codigoAutorizacion}</span>
-                </div>
+                <div className="detalle"><span>Concepto:</span>{concepto}</div>
+                <div className="detalle"><span>Periodo:</span>{periodo}</div>
+                <div className="detalle"><span>Monto:</span>${monto} COP</div>
+                <div className="detalle"><span>Banco:</span>{resultado.banco}</div>
+                <div className="detalle"><span>Autorización:</span>{resultado.codigoAutorizacion}</div>
               </div>
-              
-              <p>Redirigiendo en 3 segundos...</p>
+
+              <p>Redirigiendo...</p>
             </>
           ) : (
             <>
               <p className="error-text">{resultado.mensajeError}</p>
-              <button 
-                onClick={() => setResultado(null)}
-                className="btn-secundario"
-              >
-                Intentar Nuevamente
+              <button onClick={() => setResultado(null)} className="btn-secundario">
+                Intentar nuevamente
               </button>
             </>
           )}
@@ -212,6 +191,7 @@ const PagoForm: React.FC<PagoFormProps> = ({
       </div>
 
       <form className="pago-form" onSubmit={(e) => { e.preventDefault(); procesarPago(); }}>
+        
         <div className="form-group">
           <label>Número de Tarjeta</label>
           <input
@@ -223,7 +203,6 @@ const PagoForm: React.FC<PagoFormProps> = ({
             className={errores.numeroTarjeta ? 'error' : ''}
           />
           {errores.numeroTarjeta && <div className="error-text">{errores.numeroTarjeta}</div>}
-          <div className="tarjetas-aceptadas">Visa, Mastercard, American Express</div>
         </div>
 
         <div className="form-row">
@@ -267,16 +246,16 @@ const PagoForm: React.FC<PagoFormProps> = ({
           {errores.nombreTitular && <div className="error-text">{errores.nombreTitular}</div>}
         </div>
 
-        <button type="submit" className="btn-pagar">
+        <button type="submit" className="btn-pagar" disabled={procesando}>
           Pagar ${monto} COP
         </button>
 
-        <button type="button" onClick={onCancelar} className="btn-secundario">
+        <button type="button" onClick={onCancelar} className="btn-secundario" disabled={procesando}>
           Cancelar
         </button>
 
         <div className="seguridad-info">
-          🔒 Transacción segura • Tus datos están protegidos
+          🔒 Transacción segura
         </div>
       </form>
     </div>

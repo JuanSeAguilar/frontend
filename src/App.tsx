@@ -36,7 +36,7 @@ import ValidarAutorizado from "./pages/Guarda/ValidarAutorizado";
 import DashboardResidente from "./pages/Residente/DashboardResidente";
 import AutorizadosList from "./pages/Residente/AutorizadosList";
 import MisCorrespondencias from "./pages/Residente/MisCorrespondencias";
-import PagoPage from './pages/PagoPages';
+
 
 
 
@@ -105,7 +105,7 @@ const App: React.FC = () => {
             <Route path="dashboard" element={<DashboardResidente />} />
             <Route path="autorizados" element={<AutorizadosList />} />
             <Route path="mis-correspondencias" element={<MisCorrespondencias />} />
-            <Route path="pagos" element={<PagoPage />} /> 
+            
           </Route>
 
           {/* Default */}
